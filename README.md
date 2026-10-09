@@ -32,4 +32,4 @@ Bu ürün TMDB API'sini kullanır ancak TMDB tarafından onaylanmamış veya ser
 
 ## Kurulum
 
-v2 iskeleti tamamlandığında eklenecek.
+Gerekli hesaplar, API anahtarları ve ortam değişkenleri: [docs/SETUP.md](docs/SETUP.md). Çalıştırma komutları v2 iskeleti tamamlandığında eklenecek.
