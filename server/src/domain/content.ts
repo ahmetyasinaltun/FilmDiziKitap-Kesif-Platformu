@@ -4,7 +4,8 @@
  *
  * Görsel alanları (`poster`, `backdrop`, `profile`, `logo`): TMDB görselleri "/abc.jpg"
  * biçiminde yol olarak gelir, boyutu istemci ekrana göre seçer (w342, w780...).
- * Kitap görselleri tam URL'dir. Ayırt etmek için: "/" ile başlıyorsa TMDB yolu.
+ * Kitap görselleri tam URL'dir (Open Library: ".../b/id/123-M.jpg"; boyut için "-S/-M/-L"
+ * eki değiştirilebilir). Ayırt etmek için: "/" ile başlıyorsa TMDB yolu.
  */
 
 export type MediaType = 'movie' | 'tv' | 'book';
@@ -12,17 +13,21 @@ export type MediaType = 'movie' | 'tv' | 'book';
 /** Kart ve listelerde gösterim için özet. */
 export interface ContentSummary {
   type: MediaType;
-  /** Sağlayıcıdaki kimlik: TMDB id'si ("27205") veya kitap kimliği */
+  /** Sağlayıcıdaki kimlik: TMDB id'si ("27205") veya Open Library eser kimliği ("OL1168083W") */
   id: string;
+  /** Kitaplarda Türkçe baskının adı (varsa) */
   title: string;
-  /** Sadece başlıktan farklıysa dolu */
+  /** Sadece başlıktan farklıysa dolu (kitaplarda eserin özgün adı, örn. "Nineteen Eighty-Four") */
   originalTitle: string | null;
+  /** Kitaplarda ilk yayın yılı */
   year: number | null;
   poster: string | null;
   /** Arama sonuçlarında dolu; öneri ve filmografi listelerinde yer kazanmak için boş */
   overview: string | null;
   /** Kaynağın kendi puanı (0-10), yeterli oy yoksa null */
   rating: number | null;
+  /** Sadece kitaplarda: yazar adları (kartta yıl yerine yazar gösterilir) */
+  authorNames?: string[];
 }
 
 export interface PersonSummary {
@@ -201,4 +206,55 @@ export interface PersonDetail {
   knownFor: ContentSummary[];
   /** Tüm işleri, yeniden eskiye. Talk show ve haber programları hariç. */
   credits: PersonCredit[];
+}
+
+// ---------- Kitaplar (Open Library + Google Books) ----------
+
+export interface BookDescription {
+  text: string;
+  /** Atıf ve dil ipucu için: Google Books açıklamaları Türkçe, Open Library'ninkiler çoğunlukla İngilizce */
+  source: 'Google Books' | 'Open Library';
+}
+
+export interface BookDetail extends ContentSummary {
+  type: 'book';
+  authors: { id: string; name: string }[];
+  /** Türkçe açıklama bulunamazsa Open Library'nin açıklaması; o da yoksa null */
+  description: BookDescription | null;
+  /** Türkçe baskının sayfa sayısı, yoksa baskıların ortancası */
+  pageCount: number | null;
+  /** Türkçe baskının yayınevi */
+  publisher: string | null;
+  isbn: string | null;
+  editionCount: number;
+  links: {
+    openLibrary: string;
+    /** Google Books önizleme sayfası (varsa) */
+    googleBooks: string | null;
+  };
+}
+
+export interface AuthorDetail {
+  type: 'author';
+  /** Open Library yazar kimliği ("OL15318546A") */
+  id: string;
+  name: string;
+  /** Çoğunlukla İngilizce; Türk yazarların çoğunda yok */
+  bio: string | null;
+  birthDate: string | null;
+  deathDate: string | null;
+  photo: string | null;
+  /** Baskı sayısına göre en çok basılan eserleri; Türkçe baskısı varsa Türkçe adıyla */
+  works: ContentSummary[];
+}
+
+/** "Tümü" araması: kaynaklar ayrı bölümlerde, biri çökerse diğeri yine gelir. */
+export type SearchSection<T> =
+  { status: 'ok'; data: Paginated<T> } | { status: 'unavailable'; message: string };
+
+export interface CombinedSearch {
+  /** Film, dizi ve kişiler (TMDB) */
+  titles: SearchSection<SearchResult>;
+  /** Kitaplar (Open Library) */
+  books: SearchSection<ContentSummary>;
 }
