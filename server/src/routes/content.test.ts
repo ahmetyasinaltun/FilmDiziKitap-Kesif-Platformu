@@ -9,15 +9,25 @@ vi.mock('../providers/tmdb/index.js', () => ({
   getTv: vi.fn(),
   getSeason: vi.fn(),
   getPerson: vi.fn(),
-  searchMulti: vi.fn(),
+  searchTmdb: vi.fn(),
   getTrending: vi.fn(),
   getNowPlaying: vi.fn(),
   getPopularTv: vi.fn(),
 }));
 vi.mock('../providers/omdb/index.js', () => ({ getExternalRatings: vi.fn() }));
+vi.mock('../providers/openlibrary/index.js', () => ({
+  getBookCore: vi.fn(),
+  searchBooks: vi.fn(),
+  getTrendingBooks: vi.fn(),
+  getTurkishLiterature: vi.fn(),
+  getAuthor: vi.fn(),
+}));
+vi.mock('../providers/googlebooks/index.js', () => ({ findTurkishVolume: vi.fn() }));
 
 const tmdb = await import('../providers/tmdb/index.js');
 const omdb = await import('../providers/omdb/index.js');
+const openLibrary = await import('../providers/openlibrary/index.js');
+const googleBooks = await import('../providers/googlebooks/index.js');
 const { createApp } = await import('../app.js');
 
 const movie: MovieDetail = {
@@ -109,6 +119,8 @@ describe('GET /api/movies/:id', () => {
   });
 });
 
+const emptyPage = { page: 1, totalPages: 0, totalResults: 0, results: [] };
+
 describe('GET /api/search', () => {
   it('boş aramayı Türkçe mesajla reddeder', async () => {
     const res = await request(app).get('/api/search?q=%20');
@@ -117,15 +129,91 @@ describe('GET /api/search', () => {
   });
 
   it('özel karakterli aramayı olduğu gibi iletir', async () => {
-    vi.mocked(tmdb.searchMulti).mockResolvedValue({
-      page: 1,
-      totalPages: 1,
-      totalResults: 0,
-      results: [],
-    });
+    vi.mocked(tmdb.searchTmdb).mockResolvedValue(emptyPage);
+    vi.mocked(openLibrary.searchBooks).mockResolvedValue(emptyPage);
 
     await request(app).get(`/api/search?q=${encodeURIComponent('Tom & Jerry #2')}&page=2`);
 
-    expect(tmdb.searchMulti).toHaveBeenCalledWith('Tom & Jerry #2', 2);
+    expect(tmdb.searchTmdb).toHaveBeenCalledWith('multi', 'Tom & Jerry #2', 2);
+    expect(openLibrary.searchBooks).toHaveBeenCalledWith('Tom & Jerry #2', 2);
+  });
+
+  it('kitap kaynağı çökerse film sonuçları yine gelir, eksik yanıt önbelleğe alınmaz', async () => {
+    vi.mocked(tmdb.searchTmdb).mockResolvedValue(emptyPage);
+    vi.mocked(openLibrary.searchBooks).mockRejectedValue(
+      new ProviderError('Open Library', 'unavailable'),
+    );
+
+    const res = await request(app).get('/api/search?q=kar');
+
+    expect(res.status).toBe(200);
+    expect(res.body.titles.status).toBe('ok');
+    expect(res.body.books).toMatchObject({ status: 'unavailable' });
+    expect(res.headers['cache-control']).toBe('no-store');
+  });
+
+  it('type=book sadece kitapları arar', async () => {
+    vi.mocked(openLibrary.searchBooks).mockResolvedValue(emptyPage);
+
+    const res = await request(app).get('/api/search?q=kar&type=book');
+
+    expect(res.status).toBe(200);
+    expect(tmdb.searchTmdb).not.toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/books/:id', () => {
+  const core = {
+    type: 'book' as const,
+    id: 'OL1W',
+    title: 'Ucurtma Avcisi',
+    originalTitle: 'The Kite Runner',
+    year: 2003,
+    poster: null,
+    overview: null,
+    rating: null,
+    authorNames: ['Khaled Hosseini'],
+    authors: [{ id: 'OL2A', name: 'Khaled Hosseini' }],
+    openLibraryDescription: 'An English description.',
+    pageCount: 375,
+    publisher: 'Everest',
+    isbn: null,
+    editionCount: 80,
+    links: { openLibrary: 'https://openlibrary.org/works/OL1W', googleBooks: null },
+  };
+
+  it('Türkçe açıklamayı ve doğru yazılışı Google Books’tan alır', async () => {
+    vi.mocked(openLibrary.getBookCore).mockResolvedValue(core);
+    vi.mocked(googleBooks.findTurkishVolume).mockResolvedValue({
+      volume: { title: 'Uçurtma Avcısı', description: 'Türkçe açıklama', previewLink: 'https://g' },
+    });
+
+    const res = await request(app).get('/api/books/OL1W');
+
+    expect(res.status).toBe(200);
+    expect(res.body.title).toBe('Uçurtma Avcısı');
+    expect(res.body.description).toEqual({ text: 'Türkçe açıklama', source: 'Google Books' });
+    expect(res.body).not.toHaveProperty('openLibraryDescription');
+  });
+
+  it('Google Books çökerse Open Library açıklamasıyla açılır', async () => {
+    vi.mocked(openLibrary.getBookCore).mockResolvedValue(core);
+    vi.mocked(googleBooks.findTurkishVolume).mockRejectedValue(
+      new ProviderError('Google Books', 'unavailable', { status: 503 }),
+    );
+
+    const res = await request(app).get('/api/books/OL1W');
+
+    expect(res.status).toBe(200);
+    expect(res.body.description).toEqual({
+      text: 'An English description.',
+      source: 'Open Library',
+    });
+  });
+
+  it('geçersiz kitap kimliğini reddeder', async () => {
+    const res = await request(app).get('/api/books/27205');
+    expect(res.status).toBe(400);
+    expect(openLibrary.getBookCore).not.toHaveBeenCalled();
   });
 });

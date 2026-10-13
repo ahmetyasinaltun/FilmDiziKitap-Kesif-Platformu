@@ -28,6 +28,7 @@ import {
   multiItemSchema,
   overviewOnlySchema,
   paginatedSchema,
+  personItemSchema,
   personDetailSchema,
   seasonDetailSchema,
   tvDetailSchema,
@@ -95,11 +96,24 @@ export function getPerson(id: number): Promise<PersonDetail> {
   });
 }
 
-/** Film, dizi ve kişi araması (TMDB "multi search"). */
-export function searchMulti(query: string, page: number): Promise<Paginated<SearchResult>> {
+/** Türe özel aramalarda TMDB `media_type` göndermez; tek dönüştürücü kullanmak için eklenir. */
+const searchItemSchemas = {
+  multi: multiItemSchema,
+  movie: movieItemSchema.transform((item) => ({ ...item, media_type: 'movie' as const })),
+  tv: tvItemSchema.transform((item) => ({ ...item, media_type: 'tv' as const })),
+  person: personItemSchema.transform((item) => ({ ...item, media_type: 'person' as const })),
+};
+export type TmdbSearchKind = keyof typeof searchItemSchemas;
+
+/** Film, dizi ve kişi araması: "multi" hepsini birden, diğerleri tek türü arar. */
+export function searchTmdb(
+  kind: TmdbSearchKind,
+  query: string,
+  page: number,
+): Promise<Paginated<SearchResult>> {
   const normalized = query.trim().toLocaleLowerCase('tr-TR');
-  return cached(key('search', normalized, page), { ttl: 6 * HOUR }, async () => {
-    const raw = await tmdbGet('/search/multi', paginatedSchema(multiItemSchema), {
+  return cached(key('search', kind, normalized, page), { ttl: 6 * HOUR }, async () => {
+    const raw = await tmdbGet(`/search/${kind}`, paginatedSchema(searchItemSchemas[kind]), {
       query: normalized,
       page: String(page),
       include_adult: 'false',

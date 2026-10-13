@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { logger } from './lib/logger.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
+import { authorsRouter, booksRouter } from './routes/books.js';
 import { discoverRouter } from './routes/discover.js';
 import { healthRouter } from './routes/health.js';
 import { moviesRouter } from './routes/movies.js';
@@ -37,6 +38,8 @@ export function createApp() {
   api.use('/movies', moviesRouter);
   api.use('/tv', tvRouter);
   api.use('/people', peopleRouter);
+  api.use('/books', booksRouter);
+  api.use('/authors', authorsRouter);
 
   app.use('/api', api);
   app.use(notFoundHandler);
