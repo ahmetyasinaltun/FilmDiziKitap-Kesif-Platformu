@@ -16,7 +16,8 @@ Projeyi çalıştırmak için gereken hesaplar, API anahtarları ve ortam deği�
 | 3 | Google Books | Kitapların Türkçe açıklaması (isteğe bağlı) | `GOOGLE_BOOKS_API_KEY` | Faz 2 |
 | 4 | Neon | PostgreSQL veritabanı | `DATABASE_URL`, `DIRECT_URL` | Faz 1 |
 | 5 | Vercel | Yayın | Yok (GitHub bağlantısı) | Faz 6, hesap şimdiden açılabilir |
-| – | Open Library | Kitapların ana kaynağı: arama, detay, kapak, yazar, trend | `OPEN_LIBRARY_USER_AGENT` | Anahtar gerekmez |
+| – | Open Library | Kitapların ana kaynağı: arama, detay, kapak, yazar, trend | `APP_USER_AGENT` | Anahtar gerekmez |
+| – | Vikipedi / Wikidata | Kitapların Türkçe açıklaması | `APP_USER_AGENT` | Anahtar gerekmez |
 | – | Brevo, Cloudinary | E-posta, avatar yükleme | Faz 6'da eklenecek | Faz 6 |
 
 ## 0. `.env` dosyası
@@ -101,9 +102,10 @@ Komut önce biçimi (eksik/hatalı değişken) kontrol eder, sonra her servise g
 ✓ OMDb
 ✓ Google Books
 ✓ Open Library
+✓ Vikipedi
 ```
 
-`!` işareti zorunlu olmayan bir servisin (Google Books) o an erişilemediğini gösterir; uygulama yine çalışır. Google Books'un arama altyapısı sık sık `503` veriyor (Google tarafındaki bir sorun); bu durumda `!` görmek normal.
+`!` işareti zorunlu olmayan bir servisin (Google Books, Vikipedi) o an erişilemediğini gösterir; uygulama yine çalışır. Google Books'un arama altyapısı sık sık `503` veriyor (Google tarafındaki bir sorun); bu durumda `!` görmek normal.
 
 | Hata | Anlamı | Çözüm |
 |---|---|---|
