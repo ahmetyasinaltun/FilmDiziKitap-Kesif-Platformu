@@ -1,0 +1,204 @@
+/**
+ * API'nin dışarıya verdiği normalize içerik tipleri. Hangi sağlayıcıdan gelirse gelsin
+ * arayüz bu biçimi görür. Kararların gerekçesi: LEARNING.md ("İçerik katmanı").
+ *
+ * Görsel alanları (`poster`, `backdrop`, `profile`, `logo`): TMDB görselleri "/abc.jpg"
+ * biçiminde yol olarak gelir, boyutu istemci ekrana göre seçer (w342, w780...).
+ * Kitap görselleri tam URL'dir. Ayırt etmek için: "/" ile başlıyorsa TMDB yolu.
+ */
+
+export type MediaType = 'movie' | 'tv' | 'book';
+
+/** Kart ve listelerde gösterim için özet. */
+export interface ContentSummary {
+  type: MediaType;
+  /** Sağlayıcıdaki kimlik: TMDB id'si ("27205") veya kitap kimliği */
+  id: string;
+  title: string;
+  /** Sadece başlıktan farklıysa dolu */
+  originalTitle: string | null;
+  year: number | null;
+  poster: string | null;
+  /** Arama sonuçlarında dolu; öneri ve filmografi listelerinde yer kazanmak için boş */
+  overview: string | null;
+  /** Kaynağın kendi puanı (0-10), yeterli oy yoksa null */
+  rating: number | null;
+}
+
+export interface PersonSummary {
+  type: 'person';
+  id: string;
+  name: string;
+  profile: string | null;
+  /** TMDB departman kodu: "Acting", "Directing", "Writing"... Etiketi istemci çevirir. */
+  department: string | null;
+}
+
+export type SearchResult = ContentSummary | PersonSummary;
+
+export interface Paginated<T> {
+  page: number;
+  totalPages: number;
+  totalResults: number;
+  results: T[];
+}
+
+export interface Genre {
+  id: number;
+  name: string;
+}
+
+/** Sadece YouTube videoları; `key` ile https://www.youtube.com/watch?v={key} */
+export interface Video {
+  key: string;
+  name: string;
+  /** ISO 639-1 dil kodu ("tr", "en") */
+  language: string | null;
+}
+
+export interface CastMember {
+  id: string;
+  name: string;
+  character: string | null;
+  profile: string | null;
+  /** Sadece dizilerde: oyuncunun yer aldığı bölüm sayısı */
+  episodeCount?: number;
+}
+
+export interface CrewMember {
+  id: string;
+  name: string;
+  /** TMDB görev kodu: "Director", "Screenplay", "Novel"... Etiketi istemci çevirir. */
+  job: string;
+}
+
+export interface WatchProvider {
+  id: number;
+  name: string;
+  logo: string | null;
+}
+
+/** Türkiye'de nerede izlenir. Veri JustWatch'tan (TMDB üzerinden); atıf zorunlu. */
+export interface WatchProviders {
+  /** TMDB'nin izleme sayfası (JustWatch bağlantıları burada) */
+  link: string | null;
+  /** Abonelikle (Netflix vb.) */
+  stream: WatchProvider[];
+  /** Ücretsiz veya reklamlı */
+  free: WatchProvider[];
+  rent: WatchProvider[];
+  buy: WatchProvider[];
+}
+
+/** OMDb'den gelen dış puanlar. Kaynakta olmayan puan null. */
+export interface ExternalRatings {
+  imdb: { rating: number; votes: number | null } | null;
+  /** Yüzde (0-100) */
+  rottenTomatoes: number | null;
+  /** 0-100 */
+  metacritic: number | null;
+}
+
+interface TitleDetailBase extends ContentSummary {
+  tagline: string | null;
+  backdrop: string | null;
+  genres: Genre[];
+  voteCount: number;
+  imdbId: string | null;
+  /** Türkiye yaş sınırı ("13+", "18+"), yoksa null */
+  certification: string | null;
+  trailer: Video | null;
+  cast: CastMember[];
+  recommendations: ContentSummary[];
+  /** Türkiye'de hiçbir platformda yoksa null */
+  watchProviders: WatchProviders | null;
+  /** Dış puan kaynağı o an erişilemezse null; sayfa yine açılır */
+  externalRatings: ExternalRatings | null;
+}
+
+export interface MovieDetail extends TitleDetailBase {
+  type: 'movie';
+  releaseDate: string | null;
+  /** Dakika */
+  runtime: number | null;
+  directors: CrewMember[];
+  writers: CrewMember[];
+  collection: { id: string; name: string } | null;
+}
+
+export interface SeasonSummary {
+  number: number;
+  name: string;
+  episodeCount: number;
+  airDate: string | null;
+  poster: string | null;
+}
+
+export interface EpisodeSummary {
+  season: number;
+  number: number;
+  name: string;
+  airDate: string | null;
+}
+
+export interface TvDetail extends TitleDetailBase {
+  type: 'tv';
+  firstAirDate: string | null;
+  lastAirDate: string | null;
+  /** TMDB durum kodu: "Returning Series", "Ended", "Canceled"... */
+  status: string | null;
+  inProduction: boolean;
+  seasonCount: number;
+  episodeCount: number;
+  /** Ortalama bölüm süresi (dakika) */
+  episodeRuntime: number | null;
+  creators: CrewMember[];
+  networks: { id: number; name: string; logo: string | null }[];
+  /** Özel bölümler (0. sezon) sona alınır */
+  seasons: SeasonSummary[];
+  nextEpisode: EpisodeSummary | null;
+}
+
+export interface Episode {
+  number: number;
+  name: string;
+  overview: string | null;
+  airDate: string | null;
+  /** Dakika */
+  runtime: number | null;
+  still: string | null;
+  rating: number | null;
+}
+
+export interface SeasonDetail {
+  showId: string;
+  number: number;
+  name: string;
+  overview: string | null;
+  airDate: string | null;
+  poster: string | null;
+  episodes: Episode[];
+}
+
+export interface PersonCredit {
+  content: ContentSummary;
+  /** Oyuncu ise karakter adları, ekipte ise görev kodları */
+  roles: string[];
+}
+
+export interface PersonDetail {
+  type: 'person';
+  id: string;
+  name: string;
+  biography: string | null;
+  birthday: string | null;
+  deathday: string | null;
+  placeOfBirth: string | null;
+  profile: string | null;
+  department: string | null;
+  imdbId: string | null;
+  /** En bilinen işleri (oy sayısına göre ilk 8) */
+  knownFor: ContentSummary[];
+  /** Tüm işleri, yeniden eskiye. Talk show ve haber programları hariç. */
+  credits: PersonCredit[];
+}
