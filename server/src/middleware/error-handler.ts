@@ -1,6 +1,7 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { z } from 'zod';
 import { AppError, type ErrorBody } from '../lib/errors.js';
+import { ProviderError } from '../lib/http.js';
 
 export const notFoundHandler: RequestHandler = (_req, _res, next) => {
   next(new AppError(404, 'ROUTE_NOT_FOUND', 'Bu adreste bir API ucu yok.'));
@@ -43,13 +44,29 @@ export const errorHandler: ErrorRequestHandler = (err: unknown, req, res, _next)
         fields: z.flattenError(err).fieldErrors,
       },
     };
+  } else if (err instanceof ProviderError) {
+    // Ayrıntısı http.ts'te loglandı; burada sadece kullanıcıya uygun cevaba çevrilir.
+    if (err.kind === 'not_found') {
+      status = 404;
+      body = { error: { code: 'CONTENT_NOT_FOUND', message: 'Aradığın içerik bulunamadı.' } };
+    } else {
+      status = 503;
+      body = {
+        error: {
+          code: 'PROVIDER_UNAVAILABLE',
+          message: `${err.provider} şu an yanıt vermiyor. Biraz sonra tekrar dene.`,
+        },
+      };
+    }
   } else if (isClientHttpError(err)) {
     status = err.status;
     body = { error: { code: 'BAD_REQUEST', message: 'İstek okunamadı.' } };
   }
 
-  if (status >= 500) {
+  if (status >= 500 && !(err instanceof ProviderError)) {
     req.log.error({ err }, 'Beklenmeyen hata');
   }
+  // Hata yanıtları asla önbelleğe alınmaz (yoksa geçici bir 503, CDN'de saatlerce kalabilir).
+  res.set('Cache-Control', 'no-store');
   res.status(status).json(body);
 };

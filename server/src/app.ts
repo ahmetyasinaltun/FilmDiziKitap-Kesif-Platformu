@@ -3,7 +3,12 @@ import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { logger } from './lib/logger.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
+import { discoverRouter } from './routes/discover.js';
 import { healthRouter } from './routes/health.js';
+import { moviesRouter } from './routes/movies.js';
+import { peopleRouter } from './routes/people.js';
+import { searchRouter } from './routes/search.js';
+import { tvRouter } from './routes/tv.js';
 
 /**
  * Uygulamayı kurar ama dinlemeye başlamaz. Böylece aynı uygulama hem yerel sunucuda
@@ -27,6 +32,11 @@ export function createApp() {
 
   const api = Router();
   api.use('/health', healthRouter);
+  api.use('/search', searchRouter);
+  api.use('/discover', discoverRouter);
+  api.use('/movies', moviesRouter);
+  api.use('/tv', tvRouter);
+  api.use('/people', peopleRouter);
 
   app.use('/api', api);
   app.use(notFoundHandler);
