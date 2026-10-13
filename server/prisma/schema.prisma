@@ -1,0 +1,199 @@
+// Veri modeli. Kararların gerekçesi: LEARNING.md ("Veri modeli" bölümü)
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Kullanıcı ----------
+
+model User {
+  id           String   @id @default(cuid())
+  /// Küçük harfle saklanır; profil adresi: /u/{username}
+  username     String   @unique
+  /// Küçük harfle saklanır
+  email        String   @unique
+  passwordHash String
+  displayName  String?
+  bio          String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  libraryEntries LibraryEntry[]
+  lists          List[]
+  reviews        Review[]
+  reviewLikes    ReviewLike[]
+  following      Follow[]       @relation("follower")
+  followers      Follow[]       @relation("following")
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+}
+
+// ---------- İçerik ----------
+
+enum ContentType {
+  MOVIE
+  TV
+  BOOK
+}
+
+enum ContentSource {
+  TMDB
+  GOOGLE_BOOKS
+  OPEN_LIBRARY
+}
+
+/// Dış kaynaktaki bir içeriğin yerel kimliği. Kullanıcı eylemleri (kütüphane, liste,
+/// yorum) buna bağlanır. Sadece listelerde göstermek için özet tutar; detay verisi
+/// her zaman sağlayıcıdan (ApiCache üzerinden) gelir. v1'deki "yarım kayıt" hatasının çözümü.
+model Content {
+  id         String        @id @default(cuid())
+  type       ContentType
+  source     ContentSource
+  /// Sağlayıcıdaki kimlik (TMDB id, Google Books volume id...)
+  externalId String
+  title      String
+  /// TMDB: "/abc.jpg" (boyut istemcide seçilir). Kitaplar: tam URL.
+  posterPath String?
+  year       Int?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  libraryEntries LibraryEntry[]
+  listItems      ListItem[]
+  reviews        Review[]
+
+  // TMDB'de film ve dizi id'leri ayrı sayaçlardır: movie/123 ile tv/123 farklı içeriklerdir.
+  @@unique([source, type, externalId])
+}
+
+/// Dış API yanıtlarının süreli önbelleği. Anahtar örneği: "tmdb:movie:27205:tr-TR"
+model ApiCache {
+  key       String   @id
+  data      Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+}
+
+// ---------- Kütüphane ----------
+
+/// Tek enum, türe göre etiket: PLANNED = izleyeceğim / okuyacağım,
+/// IN_PROGRESS = izliyorum / okuyorum, COMPLETED = izledim / okudum, DROPPED = bıraktım
+enum LibraryStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  DROPPED
+}
+
+/// Kullanıcının bir içerikle ilişkisi: durumu, puanı ve ilerlemesi.
+model LibraryEntry {
+  id             String        @id @default(cuid())
+  userId         String
+  contentId      String
+  status         LibraryStatus
+  /// 1-10 (sınır uygulamada Zod ile kontrol edilir)
+  rating         Int?
+  /// Diziler: kaldığın sezon ve bölüm
+  currentSeason  Int?
+  currentEpisode Int?
+  /// Kitaplar: kaldığın sayfa
+  currentPage    Int?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@index([contentId])
+  @@index([userId, status])
+}
+
+// ---------- Listeler ----------
+
+model List {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ListItem[]
+
+  @@index([userId])
+}
+
+model ListItem {
+  id        String   @id @default(cuid())
+  listId    String
+  contentId String
+  /// Listedeki sıra
+  position  Int
+  note      String?
+  createdAt DateTime @default(now())
+
+  list    List    @relation(fields: [listId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, contentId])
+  @@index([listId, position])
+}
+
+// ---------- Yorumlar ----------
+
+/// Bir kullanıcının bir içerik için tek yorumu. Puan LibraryEntry'de durur:
+/// yazı yazmadan da puan verilebilir.
+model Review {
+  id              String   @id @default(cuid())
+  userId          String
+  contentId       String
+  body            String
+  containsSpoiler Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content      @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  likes   ReviewLike[]
+
+  @@unique([userId, contentId])
+  @@index([contentId, createdAt])
+}
+
+model ReviewLike {
+  userId    String
+  reviewId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@id([userId, reviewId])
+  @@index([reviewId])
+}
