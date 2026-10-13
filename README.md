@@ -32,4 +32,13 @@ Bu ürün TMDB API'sini kullanır ancak TMDB tarafından onaylanmamış veya ser
 
 ## Kurulum
 
-Gerekli hesaplar, API anahtarları ve ortam değişkenleri: [docs/SETUP.md](docs/SETUP.md). Çalıştırma komutları v2 iskeleti tamamlandığında eklenecek.
+Gereksinim: Node.js 24+. Gerekli hesaplar, API anahtarları ve ortam değişkenleri: [docs/SETUP.md](docs/SETUP.md).
+
+```bash
+npm install                    # bağımlılıklar + Prisma client
+npm run check:env -w server    # .env ve bağlantı kontrolü
+npm run db:migrate -w server   # veritabanı tabloları
+npm run dev                    # http://localhost:5173
+```
+
+`npm test`, `npm run lint` ve `npm run typecheck` ile kontroller çalıştırılır.

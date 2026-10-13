@@ -72,6 +72,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 3. Proje panelinde **Connect** düğmesi → bağlantı adresi (`postgresql://...` ile başlar):
    - **Connection pooling açık** iken görünen adres (`-pooler` içerir) → `DATABASE_URL`
    - **Connection pooling kapalı** iken görünen adres → `DIRECT_URL` (veritabanı şeması güncellemeleri için)
+   - Her iki adreste `sslmode=require` kısmını `sslmode=verify-full` yap. Kullandığımız `pg` sürücüsü zaten böyle davranıyor; açıkça yazınca uyarı vermiyor.
 4. Geliştirme için ayrı bir dal oluştur: **Branches** → **Create branch** → ad: `dev`. Geliştirme sırasında `.env`'deki adresler bu `dev` dalından alınır. `main` dal canlı site için ayrılır.
    *Not: Her dalın kendi bağlantı adresi var. Connect penceresinde dal seçicisinden `dev`'i seçmeyi unutma.*
 
@@ -82,4 +83,38 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 ## 6. Kontrol
 
-Değerleri `.env`'ye yazdıktan sonra hepsinin çalıştığı, değerler ekrana basılmadan doğrulanır. Faz 1'de eklenecek `npm run check:env` komutu bu kontrolü otomatik yapacak.
+Değerleri `.env`'ye yazdıktan sonra kök dizinde:
+
+```bash
+npm install
+npm run check:env -w server
+```
+
+Komut önce biçimi (eksik/hatalı değişken) kontrol eder, sonra her servise gerçek bir istek atar. Hiçbir değeri ekrana basmaz. Örnek çıktı:
+
+```
+✓ Biçim: tüm değişkenler mevcut ve geçerli
+
+✓ Neon (DATABASE_URL, pooled) (PostgreSQL 18.0)
+✓ Neon (DIRECT_URL, migration) (PostgreSQL 18.0)
+✓ TMDB
+✓ OMDb
+✓ Google Books
+✓ Open Library
+```
+
+`!` işareti zorunlu olmayan bir servisin (Open Library) o an erişilemediğini gösterir; uygulama yine çalışır.
+
+| Hata | Anlamı | Çözüm |
+|---|---|---|
+| `28P01` | Veritabanı şifresi reddedildi | Neon → Connect → doğru dalı (`dev`) seç, şifreyi göster ya da Roles'tan sıfırla, adresi yeniden kopyala |
+| `HTTP 401` | API anahtarı geçersiz | İlgili bölümdeki adımlarla anahtarı yeniden al |
+| `HTTP 503` / zaman aşımı | Servis o an yanıt vermiyor | Birkaç dakika sonra tekrar dene |
+
+Kontrol geçince veritabanı tablolarını oluştur:
+
+```bash
+npm run db:migrate -w server
+```
+
+Ardından `npm run dev` ile uygulamayı başlat: http://localhost:5173
