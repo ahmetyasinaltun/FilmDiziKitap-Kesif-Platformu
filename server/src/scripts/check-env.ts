@@ -16,8 +16,8 @@ async function checkPostgres(url: string): Promise<CheckResult> {
   const client = new pg.Client({ connectionString: url, connectionTimeoutMillis: TIMEOUT_MS });
   try {
     await client.connect();
-    const { rows } = await client.query<{ version: string }>('SHOW server_version');
-    return { ok: true, detail: `PostgreSQL ${rows[0]?.version ?? '?'}` };
+    const { rows } = await client.query<{ server_version: string }>('SHOW server_version');
+    return { ok: true, detail: `PostgreSQL ${rows[0]?.server_version ?? '?'}` };
   } finally {
     await client.end().catch(() => undefined);
   }
@@ -27,8 +27,17 @@ async function checkHttp(
   url: string,
   init: RequestInit,
   isValid: (body: unknown) => boolean = () => true,
+  retriesLeft = 1,
 ): Promise<CheckResult> {
-  const res = await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  let res: Response;
+  try {
+    res = await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  } catch (error) {
+    if (retriesLeft > 0) return checkHttp(url, init, isValid, retriesLeft - 1);
+    throw error;
+  }
+  // 5xx geçici olabilir (Google Books ara sıra 503 veriyor): bir kez daha dene.
+  if (res.status >= 500 && retriesLeft > 0) return checkHttp(url, init, isValid, retriesLeft - 1);
   if (!res.ok) return { ok: false, detail: `HTTP ${res.status}` };
   const body: unknown = await res.json();
   return isValid(body) ? { ok: true } : { ok: false, detail: 'beklenmeyen yanıt' };
