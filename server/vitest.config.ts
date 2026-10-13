@@ -12,7 +12,7 @@ export default defineConfig({
       TMDB_API_TOKEN: 'test',
       OMDB_API_KEY: 'test',
       GOOGLE_BOOKS_API_KEY: 'test',
-      OPEN_LIBRARY_USER_AGENT: 'SosyalKutuphane/test (test@example.com)',
+      APP_USER_AGENT: 'SosyalKutuphane/test (test@example.com)',
     },
   },
 });

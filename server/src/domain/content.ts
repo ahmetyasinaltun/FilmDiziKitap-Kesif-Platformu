@@ -212,14 +212,18 @@ export interface PersonDetail {
 
 export interface BookDescription {
   text: string;
-  /** Atıf ve dil ipucu için: Google Books açıklamaları Türkçe, Open Library'ninkiler çoğunlukla İngilizce */
-  source: 'Google Books' | 'Open Library';
+  /**
+   * Atıf ve dil ipucu için. Vikipedi ve Google Books Türkçe, Open Library çoğunlukla İngilizce.
+   * Vikipedi metni CC BY-SA 4.0: arayüzde kaynak adı ve `url` bağlantısı gösterilmeli.
+   */
+  source: 'Vikipedi' | 'Google Books' | 'Open Library';
+  url: string | null;
 }
 
 export interface BookDetail extends ContentSummary {
   type: 'book';
   authors: { id: string; name: string }[];
-  /** Türkçe açıklama bulunamazsa Open Library'nin açıklaması; o da yoksa null */
+  /** Önce Türkçe Vikipedi, sonra Google Books, en son Open Library; hiçbiri yoksa null */
   description: BookDescription | null;
   /** Türkçe baskının sayfa sayısı, yoksa baskıların ortancası */
   pageCount: number | null;

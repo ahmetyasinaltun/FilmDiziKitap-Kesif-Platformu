@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 import { logger } from './logger.js';
 
-export type ProviderName = 'TMDB' | 'OMDb' | 'Google Books' | 'Open Library';
+export type ProviderName = 'TMDB' | 'OMDb' | 'Google Books' | 'Open Library' | 'Vikipedi';
 
 /**
  * Dış kaynak hatası.

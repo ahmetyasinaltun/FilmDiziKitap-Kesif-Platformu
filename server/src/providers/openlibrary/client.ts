@@ -19,7 +19,7 @@ export function olGet<S extends z.ZodType>(
     provider: 'Open Library',
     url,
     schema,
-    headers: { 'User-Agent': env.OPEN_LIBRARY_USER_AGENT },
+    headers: { 'User-Agent': env.APP_USER_AGENT },
     // Arama uçları bazen 1-2 saniye sürüyor
     timeoutMs: 10_000,
   });

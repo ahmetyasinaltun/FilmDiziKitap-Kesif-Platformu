@@ -17,7 +17,7 @@ export const envSchema = z.object({
   TMDB_API_TOKEN: required,
   OMDB_API_KEY: required,
   GOOGLE_BOOKS_API_KEY: required,
-  OPEN_LIBRARY_USER_AGENT: required,
+  APP_USER_AGENT: required,
 });
 
 /** Sadece migration komutları kullanır (prisma.config.ts); uygulama çalışırken gerekmez. */

@@ -2,6 +2,7 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MovieDetail } from '../domain/content.js';
 import { ProviderError } from '../lib/http.js';
+import type * as WikipediaModule from '../providers/wikipedia/index.js';
 
 // Dış kaynaklar taklit edilir: testler internete ve veritabanına bağlı değil.
 vi.mock('../providers/tmdb/index.js', () => ({
@@ -23,11 +24,17 @@ vi.mock('../providers/openlibrary/index.js', () => ({
   getAuthor: vi.fn(),
 }));
 vi.mock('../providers/googlebooks/index.js', () => ({ findTurkishVolume: vi.fn() }));
+// Sadece ağa çıkan fonksiyon taklit edilir; saf yardımcılar (baseTitle) gerçek haliyle kalır.
+vi.mock('../providers/wikipedia/index.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof WikipediaModule>()),
+  findBookArticle: vi.fn(),
+}));
 
 const tmdb = await import('../providers/tmdb/index.js');
 const omdb = await import('../providers/omdb/index.js');
 const openLibrary = await import('../providers/openlibrary/index.js');
 const googleBooks = await import('../providers/googlebooks/index.js');
+const wikipedia = await import('../providers/wikipedia/index.js');
 const { createApp } = await import('../app.js');
 
 const movie: MovieDetail = {
@@ -182,8 +189,9 @@ describe('GET /api/books/:id', () => {
     links: { openLibrary: 'https://openlibrary.org/works/OL1W', googleBooks: null },
   };
 
-  it('Türkçe açıklamayı ve doğru yazılışı Google Books’tan alır', async () => {
+  it('Vikipedi yoksa Türkçe açıklamayı ve doğru yazılışı Google Books’tan alır', async () => {
     vi.mocked(openLibrary.getBookCore).mockResolvedValue(core);
+    vi.mocked(wikipedia.findBookArticle).mockResolvedValue({ article: null });
     vi.mocked(googleBooks.findTurkishVolume).mockResolvedValue({
       volume: { title: 'Uçurtma Avcısı', description: 'Türkçe açıklama', previewLink: 'https://g' },
     });
@@ -192,12 +200,19 @@ describe('GET /api/books/:id', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.title).toBe('Uçurtma Avcısı');
-    expect(res.body.description).toEqual({ text: 'Türkçe açıklama', source: 'Google Books' });
+    expect(res.body.description).toEqual({
+      text: 'Türkçe açıklama',
+      source: 'Google Books',
+      url: 'https://g',
+    });
     expect(res.body).not.toHaveProperty('openLibraryDescription');
   });
 
-  it('Google Books çökerse Open Library açıklamasıyla açılır', async () => {
+  it('Vikipedi ve Google Books çökerse Open Library açıklamasıyla açılır', async () => {
     vi.mocked(openLibrary.getBookCore).mockResolvedValue(core);
+    vi.mocked(wikipedia.findBookArticle).mockRejectedValue(
+      new ProviderError('Vikipedi', 'unavailable'),
+    );
     vi.mocked(googleBooks.findTurkishVolume).mockRejectedValue(
       new ProviderError('Google Books', 'unavailable', { status: 503 }),
     );
@@ -208,7 +223,26 @@ describe('GET /api/books/:id', () => {
     expect(res.body.description).toEqual({
       text: 'An English description.',
       source: 'Open Library',
+      url: null,
     });
+  });
+
+  it('yeterli Vikipedi açıklaması varsa Google Books’a hiç sormaz', async () => {
+    vi.mocked(openLibrary.getBookCore).mockResolvedValue(core);
+    vi.mocked(wikipedia.findBookArticle).mockResolvedValue({
+      article: {
+        title: 'Uçurtma Avcısı',
+        extract: 'Uzun açıklama. '.repeat(20),
+        url: 'https://tr.wikipedia.org/wiki/U',
+      },
+    });
+
+    const res = await request(app).get('/api/books/OL1W');
+
+    expect(res.body.description.source).toBe('Vikipedi');
+    // Aksansız Open Library başlığı, Vikipedi madde adıyla düzelir
+    expect(res.body.title).toBe('Uçurtma Avcısı');
+    expect(googleBooks.findTurkishVolume).not.toHaveBeenCalled();
   });
 
   it('geçersiz kitap kimliğini reddeder', async () => {

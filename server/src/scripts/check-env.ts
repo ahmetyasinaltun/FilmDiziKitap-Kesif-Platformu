@@ -121,8 +121,18 @@ async function main() {
       required: true,
       run: () =>
         checkHttp('https://openlibrary.org/search.json?q=tutunamayanlar&limit=1', {
-          headers: { 'User-Agent': env.OPEN_LIBRARY_USER_AGENT },
+          headers: { 'User-Agent': env.APP_USER_AGENT },
         }),
+    },
+    {
+      // Kitapların Türkçe açıklaması (isteğe bağlı)
+      name: 'Vikipedi',
+      required: false,
+      run: () =>
+        checkHttp(
+          'https://tr.wikipedia.org/w/api.php?action=query&titles=Tutunamayanlar&format=json',
+          { headers: { 'User-Agent': env.APP_USER_AGENT } },
+        ),
     },
   ];
 
