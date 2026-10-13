@@ -107,7 +107,8 @@ async function main() {
     },
     {
       name: 'Google Books',
-      required: true,
+      // Sadece Türkçe açıklama için; arama altyapısı sık 503 veriyor, uygulama onsuz da çalışır.
+      required: false,
       run: () =>
         checkHttp(
           `https://www.googleapis.com/books/v1/volumes?${new URLSearchParams({ q: 'tutunamayanlar', maxResults: '1', key: env.GOOGLE_BOOKS_API_KEY })}`,
@@ -115,9 +116,9 @@ async function main() {
         ),
     },
     {
-      // Anahtar istemez; kesinti yaşarsa uygulama zarifçe idare eder, bu yüzden zorunlu değil.
+      // Kitapların ana kaynağı (anahtar istemez)
       name: 'Open Library',
-      required: false,
+      required: true,
       run: () =>
         checkHttp('https://openlibrary.org/search.json?q=tutunamayanlar&limit=1', {
           headers: { 'User-Agent': env.OPEN_LIBRARY_USER_AGENT },
