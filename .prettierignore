@@ -1,0 +1,5 @@
+legacy/
+server/src/generated/
+server/prisma/migrations/
+package-lock.json
+*.md
