@@ -2,102 +2,25 @@ import express from 'express';
 import { SignJWT } from 'jose';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Prisma } from '../generated/prisma/client.js';
+import { startTestDatabase } from '../test/database.js';
+import { sessionCookie, signUp } from '../test/session.js';
 
-// Veritabanı yerine bellekte çalışan küçük bir `user` tablosu: testler internete ve
-// veritabanına bağlı değil. Prisma'nın kullandığımız kadarını taklit eder (where, select).
-const { fakePrisma, users } = vi.hoisted(() => {
-  interface UserRow {
-    id: string;
-    username: string;
-    email: string;
-    passwordHash: string;
-    displayName: string | null;
-    avatarUrl: string | null;
-  }
-  type Where = Partial<UserRow>;
-  type Select = Partial<Record<keyof UserRow, boolean>>;
-
-  const users = new Map<string, UserRow>();
-  const matches = (row: UserRow, where: Where) =>
-    Object.entries(where).every(([field, value]) => row[field as keyof UserRow] === value);
-  const pick = (row: UserRow, select?: Select) =>
-    select
-      ? Object.fromEntries(Object.entries(row).filter(([field]) => select[field as keyof UserRow]))
-      : { ...row };
-
-  const fakePrisma = {
-    user: {
-      findUnique: vi.fn(async ({ where, select }: { where: Where; select?: Select }) => {
-        const row = [...users.values()].find((user) => matches(user, where));
-        return row ? pick(row, select) : null;
-      }),
-      findMany: vi.fn(async ({ where, select }: { where: { OR: Where[] }; select?: Select }) =>
-        [...users.values()]
-          .filter((user) => where.OR.some((condition) => matches(user, condition)))
-          .map((user) => pick(user, select)),
-      ),
-      create: vi.fn(
-        async ({
-          data,
-          select,
-        }: {
-          data: Omit<UserRow, 'id' | 'displayName' | 'avatarUrl'>;
-          select?: Select;
-        }) => {
-          const row: UserRow = {
-            id: `user-${users.size + 1}`,
-            displayName: null,
-            avatarUrl: null,
-            ...data,
-          };
-          users.set(row.id, row);
-          return pick(row, select);
-        },
-      ),
-    },
-  };
-  return { fakePrisma, users };
-});
-
-vi.mock('../lib/prisma.js', () => ({ prisma: fakePrisma }));
-// Rate limit sayaçları da bellekte (kütüphanenin kendi deposu).
-vi.mock('../lib/rate-limit-store.js', async () => {
-  const { MemoryStore } = await import('express-rate-limit');
-  return { createRateLimitStore: () => new MemoryStore() };
-});
-
+const db = await startTestDatabase();
 const { createApp } = await import('../app.js');
+const { prisma } = await import('../lib/prisma.js');
 const { requireUser } = await import('../services/auth.js');
 const { errorHandler } = await import('../middleware/error-handler.js');
 
 const app = createApp();
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-// Rate limit IP başına sayılır; her test farklı bir IP'den gelir ki sayaçlar karışmasın.
-let ipCounter = 0;
-let ip = '';
-
-const post = (path: string, body: object) =>
-  request(app).post(`/api/auth${path}`).set('X-Forwarded-For', ip).send(body);
+const post = (path: string, body: object) => request(app).post(`/api/auth${path}`).send(body);
 const me = (cookie?: string) => {
   const req = request(app).get('/api/auth/me');
   return cookie ? req.set('Cookie', cookie) : req;
 };
 
 const validUser = { username: 'Ahmet_42', email: ' Ahmet@Ornek.com ', password: 'gizli-sifre-123' };
-
-function sessionCookie(res: request.Response): string {
-  const header = res.headers['set-cookie'] as unknown as string[] | undefined;
-  const cookie = header?.find((value) => value.startsWith('session='));
-  if (!cookie) throw new Error('Oturum cookie’si yok');
-  return cookie;
-}
-
-async function registerAndGetCookie() {
-  const res = await post('/register', validUser);
-  return sessionCookie(res).split(';')[0] as string;
-}
 
 function signToken(userId: string, issuedAt: number, expiresAt: number) {
   return new SignJWT()
@@ -111,10 +34,10 @@ function signToken(userId: string, issuedAt: number, expiresAt: number) {
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 const DAY = 24 * 60 * 60;
 
-beforeEach(() => {
-  users.clear();
-  vi.clearAllMocks();
-  ip = `203.0.113.${++ipCounter}`;
+beforeEach(async () => {
+  // Kullanıcılar ve rate limit sayaçları her testte sıfırdan.
+  await db.reset();
+  vi.restoreAllMocks();
 });
 
 describe('POST /api/auth/register', () => {
@@ -123,7 +46,7 @@ describe('POST /api/auth/register', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.user).toEqual({
-      id: 'user-1',
+      id: expect.any(String),
       username: 'ahmet_42',
       email: 'ahmet@ornek.com',
       displayName: null,
@@ -136,9 +59,10 @@ describe('POST /api/auth/register', () => {
     expect(cookie).toContain('SameSite=Lax');
     expect(cookie).toContain('Path=/');
 
-    const stored = users.get('user-1');
-    expect(stored?.passwordHash).toMatch(/^\$2b\$12\$/);
-    expect(stored?.passwordHash).not.toContain(validUser.password);
+    const { rows } = await db.query<{ passwordHash: string }>(
+      `SELECT "passwordHash" FROM "User" WHERE username = 'ahmet_42'`,
+    );
+    expect(rows[0]?.passwordHash).toMatch(/^\$2b\$12\$/);
   });
 
   it('hatalı alanları ayrı ayrı bildirir', async () => {
@@ -171,27 +95,15 @@ describe('POST /api/auth/register', () => {
     expect(res.body.error.fields.email).toEqual(['Bu e-posta ile kayıtlı bir hesap var.']);
   });
 
-  it('kontrol ile kayıt arasında ad kapılırsa (P2002) yine 409 döner', async () => {
-    fakePrisma.user.create.mockImplementationOnce(async () => {
-      // Aynı anda gelen başka bir kayıt isteği adı bizden önce almış.
-      users.set('baskasi', {
-        id: 'baskasi',
-        username: 'ahmet_42',
-        email: 'baska@ornek.com',
-        passwordHash: 'x',
-        displayName: null,
-        avatarUrl: null,
-      });
-      throw new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
-        code: 'P2002',
-        clientVersion: 'test',
-      });
-    });
+  it('kontrol ile kayıt arasında ad kapılırsa veritabanı kısıtı yakalar ve yine 409 döner', async () => {
+    await post('/register', { ...validUser, email: 'baska@ornek.com' });
+    // Ön kontrol "boş" desin: aynı anda gelen başka bir kayıt adı bizden önce almış gibi.
+    vi.spyOn(prisma.user, 'findMany').mockResolvedValueOnce([]);
 
     const res = await post('/register', validUser);
 
     expect(res.status).toBe(409);
-    expect(res.body.error.fields.username).toEqual(['Bu kullanıcı adı alınmış.']);
+    expect(res.body.error.fields).toEqual({ username: ['Bu kullanıcı adı alınmış.'] });
   });
 });
 
@@ -233,7 +145,7 @@ describe('POST /api/auth/login', () => {
 
     expect(res.status).toBe(429);
     expect(res.body.error.code).toBe('RATE_LIMITED');
-    expect(res.body.error.message).toMatch(/\d+ dakika sonra/);
+    expect(res.body.error.message).toBe('Çok fazla deneme yapıldı. 15 dakika sonra tekrar dene.');
     expect(Number(res.headers['retry-after'])).toBeGreaterThan(0);
   });
 
@@ -256,7 +168,7 @@ describe('GET /api/auth/me', () => {
   });
 
   it('cookie’deki oturumun kullanıcısını döner', async () => {
-    const cookie = await registerAndGetCookie();
+    const { cookie } = await signUp(app, validUser);
 
     const res = await me(cookie);
 
@@ -265,36 +177,36 @@ describe('GET /api/auth/me', () => {
   });
 
   it.each([
-    ['süresi dolmuş', async () => signToken('user-1', nowSeconds() - 8 * DAY, nowSeconds() - DAY)],
+    ['süresi dolmuş', (id: string) => signToken(id, nowSeconds() - 8 * DAY, nowSeconds() - DAY)],
     [
       'başka bir anahtarla imzalanmış',
-      () =>
+      (id: string) =>
         new SignJWT()
           .setProtectedHeader({ alg: 'HS256' })
-          .setSubject('user-1')
+          .setSubject(id)
           .setIssuedAt()
           .setExpirationTime('1d')
           .sign(new TextEncoder().encode('saldirganin-bildigi-baska-bir-anahtar-123')),
     ],
     [
       'imzasız ("alg: none")',
-      async () => {
+      async (id: string) => {
         const part = (value: object) => Buffer.from(JSON.stringify(value)).toString('base64url');
-        return `${part({ alg: 'none' })}.${part({ sub: 'user-1', iat: nowSeconds() })}.`;
+        return `${part({ alg: 'none' })}.${part({ sub: id, iat: nowSeconds() })}.`;
       },
     ],
   ])('%s bileti kabul etmez ve cookie’yi temizler', async (_label, makeToken) => {
-    await post('/register', validUser);
+    const { user } = await signUp(app, validUser);
 
-    const res = await me(`session=${await makeToken()}`);
+    const res = await me(`session=${await makeToken(user.id)}`);
 
     expect(res.body).toEqual({ user: null });
     expect(sessionCookie(res)).toMatch(/Expires=Thu, 01 Jan 1970/);
   });
 
   it('hesap silinmişse geçerli bilet de oturum açmaz', async () => {
-    const cookie = await registerAndGetCookie();
-    users.clear();
+    const { cookie } = await signUp(app, validUser);
+    await db.query(`DELETE FROM "User"`);
 
     const res = await me(cookie);
 
@@ -302,14 +214,14 @@ describe('GET /api/auth/me', () => {
   });
 
   it('bir günden eski oturumu yeniler, yeni oturuma dokunmaz', async () => {
-    await post('/register', validUser);
-    const oldToken = await signToken('user-1', nowSeconds() - 2 * DAY, nowSeconds() + 5 * DAY);
-    const freshToken = await signToken('user-1', nowSeconds() - 60, nowSeconds() + 7 * DAY);
+    const { user } = await signUp(app, validUser);
+    const oldToken = await signToken(user.id, nowSeconds() - 2 * DAY, nowSeconds() + 5 * DAY);
+    const freshToken = await signToken(user.id, nowSeconds() - 60, nowSeconds() + 7 * DAY);
 
     const refreshed = await me(`session=${oldToken}`);
     const untouched = await me(`session=${freshToken}`);
 
-    expect(refreshed.body.user.id).toBe('user-1');
+    expect(refreshed.body.user.id).toBe(user.id);
     expect(sessionCookie(refreshed)).not.toContain(oldToken);
     expect(untouched.headers['set-cookie']).toBeUndefined();
   });
@@ -317,7 +229,7 @@ describe('GET /api/auth/me', () => {
 
 describe('POST /api/auth/logout', () => {
   it('oturum cookie’sini siler', async () => {
-    const cookie = await registerAndGetCookie();
+    const { cookie } = await signUp(app, validUser);
 
     const res = await request(app).post('/api/auth/logout').set('Cookie', cookie);
 
@@ -327,7 +239,7 @@ describe('POST /api/auth/logout', () => {
 });
 
 describe('requireUser', () => {
-  // Giriş gerektiren uçlar bunu çağıracak; davranışı küçük bir uygulamayla denenir.
+  // Giriş gerektiren uçlar bunu çağırır; davranışı küçük bir uygulamayla denenir.
   const protectedApp = express();
   protectedApp.get('/', async (req, res) => {
     const user = await requireUser(req);
@@ -346,10 +258,10 @@ describe('requireUser', () => {
   });
 
   it('oturumdaki kullanıcıyı verir', async () => {
-    const cookie = await registerAndGetCookie();
+    const { cookie, user } = await signUp(app, validUser);
 
     const res = await request(protectedApp).get('/').set('Cookie', cookie);
 
-    expect(res.body).toEqual({ id: 'user-1' });
+    expect(res.body).toEqual({ id: user.id });
   });
 });
