@@ -64,17 +64,19 @@ enum ContentSource {
 /// yorum) buna bağlanır. Sadece listelerde göstermek için özet tutar; detay verisi
 /// her zaman sağlayıcıdan (ApiCache üzerinden) gelir. v1'deki "yarım kayıt" hatasının çözümü.
 model Content {
-  id         String        @id @default(cuid())
-  type       ContentType
-  source     ContentSource
+  id          String        @id @default(cuid())
+  type        ContentType
+  source      ContentSource
   /// Sağlayıcıdaki kimlik (TMDB id, Google Books volume id...)
-  externalId String
-  title      String
+  externalId  String
+  title       String
   /// TMDB: "/abc.jpg" (boyut istemcide seçilir). Kitaplar: tam URL.
-  posterPath String?
-  year       Int?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  posterPath  String?
+  year        Int?
+  /// Sadece kitaplar: kartlarda yıl yerine yazar gösterilir
+  authorNames String[]      @default([])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   libraryEntries LibraryEntry[]
   listItems      ListItem[]

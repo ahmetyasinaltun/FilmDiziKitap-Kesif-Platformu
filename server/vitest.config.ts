@@ -5,7 +5,7 @@ export default defineConfig({
     environment: 'node',
     // Testler gerçek .env'ye ve dış servislere bağlı olmasın: sahte ama geçerli değerler.
     // dotenv mevcut değişkenlerin üzerine yazmadığı için bunlar .env'deki değerlerden önce gelir.
-    // Veritabanı testleri DATABASE_URL'i kendi test veritabanlarıyla değiştirir (src/test/database.ts).
+    // Veritabanı testlerinde DATABASE_URL, dosyaya özel test veritabanını gösterir (src/test/database.ts).
     env: {
       NODE_ENV: 'test',
       DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
@@ -31,6 +31,7 @@ export default defineConfig({
           name: 'db',
           include: ['src/**/*.db.test.ts'],
           globalSetup: ['src/test/postgres-container.ts'],
+          setupFiles: ['src/test/database.ts'],
         },
       },
     ],

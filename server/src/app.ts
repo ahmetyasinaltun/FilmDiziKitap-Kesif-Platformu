@@ -7,10 +7,12 @@ import { authRouter } from './routes/auth.js';
 import { authorsRouter, booksRouter } from './routes/books.js';
 import { discoverRouter } from './routes/discover.js';
 import { healthRouter } from './routes/health.js';
+import { libraryRouter } from './routes/library.js';
 import { moviesRouter } from './routes/movies.js';
 import { peopleRouter } from './routes/people.js';
 import { searchRouter } from './routes/search.js';
 import { tvRouter } from './routes/tv.js';
+import { usersRouter } from './routes/users.js';
 
 /**
  * Uygulamayı kurar ama dinlemeye başlamaz. Böylece aynı uygulama hem yerel sunucuda
@@ -47,6 +49,8 @@ export function createApp() {
   api.use('/people', peopleRouter);
   api.use('/books', booksRouter);
   api.use('/authors', authorsRouter);
+  api.use('/library', libraryRouter);
+  api.use('/users', usersRouter);
 
   app.use('/api', api);
   app.use(notFoundHandler);

@@ -2,14 +2,12 @@ import express from 'express';
 import { SignJWT } from 'jose';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { startTestDatabase } from '../test/database.js';
+import { createApp } from '../app.js';
+import { prisma } from '../lib/prisma.js';
+import { errorHandler } from '../middleware/error-handler.js';
+import { requireUser } from '../services/auth.js';
+import { db } from '../test/database.js';
 import { sessionCookie, signUp } from '../test/session.js';
-
-const db = await startTestDatabase();
-const { createApp } = await import('../app.js');
-const { prisma } = await import('../lib/prisma.js');
-const { requireUser } = await import('../services/auth.js');
-const { errorHandler } = await import('../middleware/error-handler.js');
 
 const app = createApp();
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);

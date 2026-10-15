@@ -3,8 +3,9 @@ import { z } from 'zod';
 import { publicCache } from '../middleware/cache-control.js';
 import { getAuthor } from '../providers/openlibrary/index.js';
 import { getBookDetail } from '../services/books.js';
+import { bookId } from './params.js';
 
-const bookParams = z.object({ id: z.string().regex(/^OL\d+W$/, 'Geçersiz kitap kimliği') });
+const bookParams = z.object({ id: bookId });
 const authorParams = z.object({ id: z.string().regex(/^OL\d+A$/, 'Geçersiz yazar kimliği') });
 
 export const booksRouter = Router();

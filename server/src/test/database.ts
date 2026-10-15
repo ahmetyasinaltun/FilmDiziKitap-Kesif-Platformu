@@ -4,16 +4,14 @@ import { afterAll, inject } from 'vitest';
 import { TEMPLATE_DATABASE, withDatabase } from './db-url.js';
 
 /**
- * Bu test dosyasına özel, migration'ları uygulanmış boş bir PostgreSQL veritabanı açar
+ * Her veritabanı test dosyasına özel, migration'ları uygulanmış boş bir PostgreSQL veritabanı
  * (şablondan kopyalanır, ~0,1 sn). Uygulama gerçek sürücüyle bağlanır; hiçbir sorgu taklit edilmez.
  *
- * Uygulama modülleri `DATABASE_URL`'i yüklenirken okuduğu için bu fonksiyon, uygulama
- * import edilmeden ÖNCE çağrılır:
- *
- *   const db = await startTestDatabase();
- *   const { createApp } = await import('../app.js');
+ * Bu modül `db` projesinin `setupFiles` adımında, test dosyası yüklenmeden ÖNCE çalışır:
+ * uygulama `DATABASE_URL`'i yüklenirken okuduğu için adresin ondan önce ayarlanması gerekir.
+ * Test dosyaları aynı örneği `import { db } from '../test/database.js'` ile kullanır.
  */
-export async function startTestDatabase() {
+async function createTestDatabase() {
   const serverUrl = inject('postgresUrl');
   const name = `test_${randomUUID().replaceAll('-', '')}`;
 
@@ -35,6 +33,7 @@ export async function startTestDatabase() {
   const tables = rows.map((row) => `"${row.tablename}"`).join(', ');
 
   return {
+    name,
     /** Testler arasında tüm tabloları boşaltır. */
     async reset() {
       await client.query(`TRUNCATE ${tables} CASCADE`);
@@ -44,3 +43,5 @@ export async function startTestDatabase() {
       client.query<T>(sql, params),
   };
 }
+
+export const db = await createTestDatabase();

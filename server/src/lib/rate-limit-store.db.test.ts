@@ -1,9 +1,7 @@
 import type { Options } from 'express-rate-limit';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { startTestDatabase } from '../test/database.js';
-
-const db = await startTestDatabase();
-const { createRateLimitStore } = await import('./rate-limit-store.js');
+import { db } from '../test/database.js';
+import { createRateLimitStore } from './rate-limit-store.js';
 
 function storeWithWindow(prefix: string, windowMs: number) {
   const store = createRateLimitStore(prefix);
