@@ -14,7 +14,11 @@ export default defineConfig([
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // ignoreRestSiblings: `const { passwordHash, ...user } = row` ile alan ayıklamaya izin verir.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
       '@typescript-eslint/consistent-type-imports': 'error',
     },
   },

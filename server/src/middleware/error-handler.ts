@@ -34,7 +34,7 @@ export const errorHandler: ErrorRequestHandler = (err: unknown, req, res, _next)
 
   if (err instanceof AppError) {
     status = err.status;
-    body = { error: { code: err.code, message: err.message } };
+    body = { error: { code: err.code, message: err.message, fields: err.fields } };
   } else if (err instanceof z.ZodError) {
     status = 400;
     body = {

@@ -95,6 +95,17 @@ model ApiCache {
   @@index([expiresAt])
 }
 
+/// Rate limit sayaçları (giriş ve kayıt denemeleri). Sunucusuz ortamda her istek farklı
+/// bir örnekte çalışabildiği için sayaç bellekte değil burada tutulur.
+model RateLimit {
+  /// Hangi sınır ve kim için: "login:203.0.113.7"
+  key     String   @id
+  hits    Int
+  resetAt DateTime
+
+  @@index([resetAt])
+}
+
 // ---------- Kütüphane ----------
 
 /// Tek enum, türe göre etiket: PLANNED = izleyeceğim / okuyacağım,

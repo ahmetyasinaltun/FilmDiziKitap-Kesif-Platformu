@@ -13,3 +13,9 @@ export function publicCache(cdnSeconds: number): RequestHandler {
     next();
   };
 }
+
+/** Kullanıcıya özel yanıtlar (oturum, kütüphane...): hiçbir önbellekte saklanmaz. */
+export const noStore: RequestHandler = (_req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+};

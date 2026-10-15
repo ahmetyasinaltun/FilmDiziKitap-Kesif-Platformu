@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { logger } from './lib/logger.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
+import { authRouter } from './routes/auth.js';
 import { authorsRouter, booksRouter } from './routes/books.js';
 import { discoverRouter } from './routes/discover.js';
 import { healthRouter } from './routes/health.js';
@@ -17,6 +18,11 @@ import { tvRouter } from './routes/tv.js';
  */
 export function createApp() {
   const app = express();
+
+  // Canlıda istekler Vercel'in proxy'sinden geçer; gerçek istemci IP'si (rate limit için)
+  // X-Forwarded-For başlığındadır. Sadece bir proxy katmanına güvenilir: istemcinin kendi
+  // eklediği sahte değerler IP olarak kabul edilmez.
+  app.set('trust proxy', 1);
 
   app.use(helmet());
   app.use(
@@ -33,6 +39,7 @@ export function createApp() {
 
   const api = Router();
   api.use('/health', healthRouter);
+  api.use('/auth', authRouter);
   api.use('/search', searchRouter);
   api.use('/discover', discoverRouter);
   api.use('/movies', moviesRouter);
