@@ -3,6 +3,9 @@ import { configDefaults, defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
+    // Giriş testleri bcrypt'i onlarca kez çalıştırır ve bcrypt bilerek yavaştır: dizüstü pildeyken
+    // işlem başına ~1 sn. Bu sınır hız ölçmek için değil, takılan testi yakalamak için var.
+    testTimeout: 30_000,
     // Testler gerçek .env'ye ve dış servislere bağlı olmasın: sahte ama geçerli değerler.
     // dotenv mevcut değişkenlerin üzerine yazmadığı için bunlar .env'deki değerlerden önce gelir.
     // Veritabanı testlerinde DATABASE_URL, dosyaya özel test veritabanını gösterir (src/test/database.ts).
