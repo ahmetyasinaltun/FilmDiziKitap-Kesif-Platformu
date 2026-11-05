@@ -10,7 +10,7 @@ Film, dizi ve kitapları tek yerde keşfetmek, takip etmek ve yorumlamak için T
 - **Zengin detay sayfaları:** Türkçe açıklama, fragman, oyuncu kadrosu, sezon ve bölümler, benzer içerikler
 - **Puanlar bir arada:** IMDb, Rotten Tomatoes, Metacritic ve TMDB
 - **Türkiye'de nerede izlenir:** yayın platformları
-- **Kişisel takip:** izleyeceğim/izliyorum/izledim, okuyacağım/okuyorum/okudum, dizi bölüm takibi, özel listeler
+- **Kişisel takip:** izleyeceğim/izledim, okuyacağım/okudum, özel listeler
 - **Sosyal:** puan ve yorum, takip, arkadaş akışı
 - Herkese açık gezinme, mobil uyumlu ve erişilebilir arayüz
 
