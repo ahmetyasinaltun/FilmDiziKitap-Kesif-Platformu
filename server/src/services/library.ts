@@ -14,7 +14,6 @@ const fromDbStatus = (status: DbStatus) => status.toLowerCase() as LibraryStatus
 interface EntryRow {
   status: DbStatus;
   rating: number | null;
-  startedAt: Date | null;
   finishedAt: Date | null;
   updatedAt: Date;
 }
@@ -23,7 +22,6 @@ function toEntry(row: EntryRow): LibraryEntry {
   return {
     status: fromDbStatus(row.status),
     rating: row.rating,
-    startedAt: row.startedAt?.toISOString() ?? null,
     finishedAt: row.finishedAt?.toISOString() ?? null,
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -37,19 +35,16 @@ export interface EntryInput {
 
 /**
  * Durum değişikliğinin yan etkileri tek yerde:
- * - "izleyeceğim"e dönen içeriğin puanı ve başlangıç tarihi silinir (izlenmemiş bir şeyin puanı olmaz)
- * - "izliyorum"a ilk geçişte başlangıç tarihi yazılır
- * - "izledim"e geçişte bitiş tarihi yazılır, başka duruma geçince silinir
+ * - "izleyeceğim"e dönen içeriğin puanı ve bitiş tarihi silinir (izlenmemiş bir şeyin puanı olmaz)
+ * - "izledim"e geçişte bitiş tarihi yazılır; zaten izlenmişse tarih ve puan korunur
  */
 export function nextEntryState(existing: EntryRow | null, input: EntryInput, now: Date) {
   const status = toDbStatus(input.status);
-  const planned = status === 'PLANNED';
+  if (status === 'PLANNED') return { status, rating: null, finishedAt: null };
   return {
     status,
-    rating: planned ? null : input.rating !== undefined ? input.rating : (existing?.rating ?? null),
-    startedAt: planned ? null : (existing?.startedAt ?? (status === 'IN_PROGRESS' ? now : null)),
-    finishedAt:
-      status !== 'COMPLETED' ? null : existing?.status === 'COMPLETED' ? existing.finishedAt : now,
+    rating: input.rating !== undefined ? input.rating : (existing?.rating ?? null),
+    finishedAt: existing?.status === 'COMPLETED' ? existing.finishedAt : now,
   };
 }
 

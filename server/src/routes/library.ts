@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import type { MediaType } from '../domain/content.js';
-import { STATUSES_BY_TYPE } from '../domain/library.js';
+import { LIBRARY_STATUSES } from '../domain/library.js';
 import { noStore } from '../middleware/cache-control.js';
 import { requireUser } from '../services/auth.js';
 import { getEntry, removeEntry, saveEntry } from '../services/library.js';
@@ -13,18 +12,15 @@ const rating = z
   .min(1, 'Puan 1 ile 10 arasında bir tam sayı olmalı.')
   .max(10, 'Puan 1 ile 10 arasında bir tam sayı olmalı.');
 
-/** Durumlar türe göre değişir (film için "izliyorum" yok); şema türe göre kurulur. */
-function entryBody(type: MediaType) {
-  return z
-    .object({
-      status: z.enum(STATUSES_BY_TYPE[type], { error: 'Bu içerik için geçersiz bir durum.' }),
-      rating: rating.nullable().optional(),
-    })
-    .refine((body) => body.status !== 'planned' || body.rating == null, {
-      path: ['rating'],
-      message: 'Henüz izlemediğin ya da okumadığın bir içeriğe puan verilemez.',
-    });
-}
+const entryBody = z
+  .object({
+    status: z.enum(LIBRARY_STATUSES, { error: 'Geçersiz bir durum.' }),
+    rating: rating.nullable().optional(),
+  })
+  .refine((body) => body.status !== 'planned' || body.rating == null, {
+    path: ['rating'],
+    message: 'Henüz izlemediğin ya da okumadığın bir içeriğe puan verilemez.',
+  });
 
 /**
  * Oturumdaki kullanıcının kütüphanesi: `/api/library/{movie|tv|book}/{id}`.
@@ -43,7 +39,7 @@ libraryRouter.get('/:type/:id', async (req, res) => {
 libraryRouter.put('/:type/:id', async (req, res) => {
   const ref = contentRefParams.parse(req.params);
   const user = await requireUser(req);
-  const input = entryBody(ref.type).parse(req.body);
+  const input = entryBody.parse(req.body);
   res.json({ entry: await saveEntry(user.id, ref, input) });
 });
 

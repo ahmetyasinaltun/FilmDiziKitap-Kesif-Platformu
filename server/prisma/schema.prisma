@@ -111,31 +111,23 @@ model RateLimit {
 // ---------- Kütüphane ----------
 
 /// Tek enum, türe göre etiket: PLANNED = izleyeceğim / okuyacağım,
-/// IN_PROGRESS = izliyorum / okuyorum, COMPLETED = izledim / okudum, DROPPED = bıraktım
+/// COMPLETED = izledim / okudum
 enum LibraryStatus {
   PLANNED
-  IN_PROGRESS
   COMPLETED
-  DROPPED
 }
 
-/// Kullanıcının bir içerikle ilişkisi: durumu, puanı ve ilerlemesi.
+/// Kullanıcının bir içerikle ilişkisi: durumu ve puanı.
 model LibraryEntry {
-  id             String        @id @default(cuid())
-  userId         String
-  contentId      String
-  status         LibraryStatus
+  id         String        @id @default(cuid())
+  userId     String
+  contentId  String
+  status     LibraryStatus
   /// 1-10 (sınır uygulamada Zod ile kontrol edilir)
-  rating         Int?
-  /// Diziler: kaldığın sezon ve bölüm
-  currentSeason  Int?
-  currentEpisode Int?
-  /// Kitaplar: kaldığın sayfa
-  currentPage    Int?
-  startedAt      DateTime?
-  finishedAt     DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  rating     Int?
+  finishedAt DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)

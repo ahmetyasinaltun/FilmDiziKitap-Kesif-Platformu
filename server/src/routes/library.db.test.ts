@@ -72,7 +72,6 @@ describe('PUT /api/library/:type/:id', () => {
     expect(res.body.entry).toMatchObject({
       status: 'planned',
       rating: null,
-      startedAt: null,
       finishedAt: null,
     });
     expect(tmdb.getMovie).toHaveBeenCalledWith(27205);
@@ -112,7 +111,7 @@ describe('PUT /api/library/:type/:id', () => {
     expect(again.body.entry.finishedAt).toBe(completed.body.entry.finishedAt);
   });
 
-  it('"izleyeceğim"e dönen içeriğin puanı ve tarihleri silinir', async () => {
+  it('"izleyeceğim"e dönen içeriğin puanı ve bitiş tarihi silinir', async () => {
     await put('tv/1396', { status: 'completed', rating: 9 });
 
     const res = await put('tv/1396', { status: 'planned' });
@@ -120,18 +119,8 @@ describe('PUT /api/library/:type/:id', () => {
     expect(res.body.entry).toMatchObject({
       status: 'planned',
       rating: null,
-      startedAt: null,
       finishedAt: null,
     });
-  });
-
-  it('dizide başlangıç tarihi ilk "izliyorum"da yazılır ve bitince korunur', async () => {
-    const watching = await put('tv/1396', { status: 'in_progress' });
-    const finished = await put('tv/1396', { status: 'completed', rating: 10 });
-
-    expect(watching.body.entry.startedAt).not.toBeNull();
-    expect(finished.body.entry.startedAt).toBe(watching.body.entry.startedAt);
-    expect(finished.body.entry.finishedAt).not.toBeNull();
   });
 
   it('puan `null` gönderilince silinir', async () => {
@@ -143,7 +132,8 @@ describe('PUT /api/library/:type/:id', () => {
   });
 
   it.each([
-    ['filmde "izliyorum" durumu', 'movie/27205', { status: 'in_progress' }, 'status'],
+    ['kaldırılan "izliyorum" durumu', 'tv/1396', { status: 'in_progress' }, 'status'],
+    ['kaldırılan "bıraktım" durumu', 'book/OL1168083W', { status: 'dropped' }, 'status'],
     ['bilinmeyen durum', 'tv/1396', { status: 'watching' }, 'status'],
     ['izlenmemiş içeriğe puan', 'movie/27205', { status: 'planned', rating: 5 }, 'rating'],
     ['10’dan büyük puan', 'movie/27205', { status: 'completed', rating: 11 }, 'rating'],
@@ -223,7 +213,7 @@ describe('GET ve DELETE /api/library/:type/:id', () => {
 describe('GET /api/users/:username/library', () => {
   beforeEach(async () => {
     await put('movie/27205', { status: 'completed', rating: 8 });
-    await put('tv/1396', { status: 'in_progress' });
+    await put('tv/1396', { status: 'completed' });
     await put('book/OL1168083W', { status: 'planned' });
   });
 
