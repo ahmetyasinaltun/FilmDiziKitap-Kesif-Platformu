@@ -17,6 +17,14 @@ export type {
   WatchProviders,
 } from '../../../server/src/domain/content';
 
+export type {
+  ContentRef,
+  LibraryEntry,
+  LibraryItem,
+  LibraryStatus,
+} from '../../../server/src/domain/library';
+export type { SessionUser } from '../../../server/src/domain/user';
+
 import type {
   ContentSummary,
   MediaType,

@@ -12,7 +12,12 @@ const scrollClass =
 
 const TYPE_LABELS = { movie: 'Film', tv: 'Dizi', book: 'Kitap' };
 
-function detailLine(item: ContentSummary, showType: boolean) {
+type CardItem = Pick<
+  ContentSummary,
+  'type' | 'id' | 'title' | 'year' | 'poster' | 'authorNames' | 'rating'
+>;
+
+function detailLine(item: CardItem, showType: boolean) {
   if (item.type === 'book') return item.authorNames?.join(', ') ?? item.year;
   return [
     showType ? TYPE_LABELS[item.type] : null,
@@ -53,13 +58,15 @@ export function CoverFrame({
 }
 
 interface PosterCardProps {
-  item: ContentSummary;
+  item: CardItem;
   /** Karışık sonuçlarda "Film" / "Dizi" etiketi */
   showType?: boolean;
+  /** Varsayılan alt satırın yerine (örn. kütüphanede kullanıcının puanı) */
+  note?: string;
 }
 
-export function PosterCard({ item, showType = false }: PosterCardProps) {
-  const details = detailLine(item, showType);
+export function PosterCard({ item, showType = false, note }: PosterCardProps) {
+  const details = note ?? detailLine(item, showType);
 
   return (
     <Link to={contentPath(item.type, item.id)} className="group block">

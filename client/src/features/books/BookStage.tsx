@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { filmButton, quietButton } from '../../components/button-styles';
 import { CoverFrame } from '../../components/PosterRow';
 import { authorPath, contentPath, type BookDetail, type ContentSummary } from '../../lib/content';
-import { LibraryButton } from '../library/LibraryButton';
+import { LibraryControl, LibraryRating } from '../library/LibraryControl';
 import { LightImage } from '../perde/LightImage';
 import { RoomLight } from '../perde/Perde';
 import { useRoomLight } from '../perde/use-room-light';
@@ -191,13 +191,21 @@ export function BookStage({
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <LibraryButton key={summary.id} label="Okuyacağım" className={filmButton} />
+              <LibraryControl
+                key={summary.id}
+                type="book"
+                id={summary.id}
+                compact={linkToDetail}
+                idleClassName={filmButton}
+              />
               {preview && (
                 <a href={preview} target="_blank" rel="noreferrer" className={quietButton}>
                   Önizle
                 </a>
               )}
             </div>
+
+            {!linkToDetail && <LibraryRating type="book" id={summary.id} />}
 
             <div className="mt-8">
               <BookText detail={detail} status={detailStatus} preview={linkToDetail} />

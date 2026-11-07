@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState, type ReactNode, type Ref } from 'react';
 import { Link } from 'react-router';
-import { filmButton, quietButton } from '../../components/button-styles';
-import { LibraryButton } from '../library/LibraryButton';
+import { filmButton } from '../../components/button-styles';
+import { LibraryControl, LibraryRating } from '../library/LibraryControl';
 import { Perde, RoomLight } from '../perde/Perde';
 import { useRoomLight } from '../perde/use-room-light';
 import { contentPath, type TitleDetail, type TitleSummary } from '../../lib/content';
@@ -49,6 +49,9 @@ function DecisionSubtitle({
 }
 
 interface ActionsProps {
+  type: TitleSummary['type'];
+  id: string;
+  compact: boolean;
   trailerKey: string | null;
   /** Detay gelene kadar düğme yerini korur; yoksa seçim anında düğmeler yer değiştirirdi. */
   loading: boolean;
@@ -56,7 +59,7 @@ interface ActionsProps {
   trailerButton: Ref<HTMLButtonElement>;
 }
 
-function Actions({ trailerKey, loading, onPlay, trailerButton }: ActionsProps) {
+function Actions({ type, id, compact, trailerKey, loading, onPlay, trailerButton }: ActionsProps) {
   return (
     <div className="flex shrink-0 flex-wrap gap-3 lg:justify-end lg:pt-3">
       {(trailerKey || loading) && (
@@ -70,7 +73,7 @@ function Actions({ trailerKey, loading, onPlay, trailerButton }: ActionsProps) {
           Fragmanı izle
         </button>
       )}
-      <LibraryButton label="İzleyeceğim" className={quietButton} />
+      <LibraryControl type={type} id={id} compact={compact} />
     </div>
   );
 }
@@ -162,12 +165,21 @@ export function Stage({
 
           <Actions
             key={summary.id}
+            type={summary.type}
+            id={summary.id}
+            compact={linkToDetail}
             trailerKey={trailerKey}
             loading={detailStatus === 'pending'}
             onPlay={() => setTrailerOf(summary.id)}
             trailerButton={trailerButton}
           />
         </div>
+
+        {!linkToDetail && (
+          <div className="page-gutter lg:flex lg:justify-end">
+            <LibraryRating type={summary.type} id={summary.id} />
+          </div>
+        )}
 
         {children}
       </div>

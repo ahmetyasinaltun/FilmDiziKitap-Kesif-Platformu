@@ -19,6 +19,22 @@ export function SearchIcon() {
   );
 }
 
+export function CheckIcon() {
+  return (
+    <svg {...iconProps} width={18} height={18} strokeWidth={2.5}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
+export function BookmarkIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M6 4h12v16l-6-4.2L6 20z" />
+    </svg>
+  );
+}
+
 export function CloseIcon() {
   return (
     <svg {...iconProps}>

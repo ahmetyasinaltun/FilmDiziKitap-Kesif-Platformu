@@ -1,6 +1,7 @@
 import { Link, Outlet, ScrollRestoration, useLocation } from 'react-router';
 import { BRAND_NAME } from '../lib/brand';
-import { SearchIcon } from './icons';
+import { useSession } from '../features/auth/use-auth';
+import { BookmarkIcon, SearchIcon } from './icons';
 
 const navLinkClass = (active: boolean) =>
   `flex h-11 items-center transition-colors duration-200 hover:text-light ${
@@ -12,7 +13,8 @@ const isTitleSection = (path: string) =>
   path === '/' || path.startsWith('/film/') || path.startsWith('/dizi/');
 
 export function AppLayout() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const { user } = useSession();
   const inTitles = isTitleSection(pathname);
   const inBooks = pathname === '/kitap' || pathname.startsWith('/kitap/');
 
@@ -64,12 +66,28 @@ export function AppLayout() {
             >
               <SearchIcon />
             </Link>
-            <Link
-              to="/giris"
-              className="flex h-11 items-center text-light-dim transition-colors duration-200 hover:text-light"
-            >
-              Giriş
-            </Link>
+            {user ? (
+              <Link
+                to="/kutuphane"
+                aria-label="Kütüphanem"
+                aria-current={pathname === '/kutuphane' ? 'page' : undefined}
+                className={`flex h-11 items-center justify-center transition-colors duration-200 hover:text-light max-sm:w-11 ${
+                  pathname === '/kutuphane' ? 'text-light' : 'text-light-dim'
+                }`}
+              >
+                <span className="sm:hidden">
+                  <BookmarkIcon />
+                </span>
+                <span className="max-sm:hidden">Kütüphanem</span>
+              </Link>
+            ) : (
+              <Link
+                to={`/giris?next=${encodeURIComponent(pathname + search)}`}
+                className="flex h-11 items-center text-light-dim transition-colors duration-200 hover:text-light"
+              >
+                Giriş
+              </Link>
+            )}
           </div>
         </div>
       </header>

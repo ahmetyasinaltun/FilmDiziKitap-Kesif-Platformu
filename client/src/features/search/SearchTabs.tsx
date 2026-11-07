@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router';
+import { pillLink } from '../../components/button-styles';
 import { SEARCH_TABS, type SearchTab } from './use-search';
 
 export function SearchTabs({ active }: { active: SearchTab }) {
@@ -20,9 +21,7 @@ export function SearchTabs({ active }: { active: SearchTab }) {
                 replace
                 preventScrollReset
                 aria-current={selected ? 'page' : undefined}
-                className={`pressable flex h-11 items-center rounded-full px-4 font-medium ${
-                  selected ? 'bg-light text-room' : 'text-light-dim hover:text-light'
-                }`}
+                className={pillLink(selected)}
               >
                 {tab.label}
               </Link>

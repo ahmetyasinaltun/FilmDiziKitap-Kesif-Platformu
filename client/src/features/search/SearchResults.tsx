@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { posterGrid } from '../../components/button-styles';
 import { CoverFrame, PosterCard, QueryPosterRow } from '../../components/PosterRow';
 import { QueryError } from '../../components/QueryError';
 import {
@@ -25,9 +26,6 @@ import {
 const PREVIEW_SIZE = 6;
 const TITLES_PREVIEW_SIZE = 12;
 const SUGGESTION_SIZE = 6;
-
-const gridClass =
-  'grid grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-4 sm:gap-x-4 lg:grid-cols-6 lg:gap-x-5';
 
 const DEPARTMENTS: Record<string, string> = {
   Acting: 'Oyuncu',
@@ -72,7 +70,7 @@ function ResultCard({ item }: { item: SearchResult }) {
 
 function ResultGrid({ items }: { items: SearchResult[] }) {
   return (
-    <ul className={gridClass}>
+    <ul className={posterGrid}>
       {items.map((item) => (
         <li key={`${item.type}-${item.id}`}>
           <ResultCard item={item} />
@@ -84,7 +82,7 @@ function ResultGrid({ items }: { items: SearchResult[] }) {
 
 function GridSkeleton({ count = PREVIEW_SIZE }: { count?: number }) {
   return (
-    <div aria-hidden="true" className={gridClass}>
+    <div aria-hidden="true" className={posterGrid}>
       {Array.from({ length: count }, (_, index) => (
         <div
           key={index}
