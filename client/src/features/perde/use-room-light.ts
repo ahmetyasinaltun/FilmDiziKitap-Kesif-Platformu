@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { pickFilmColor, pickLightStrength } from '../../lib/film-color';
 import { tmdbImage } from '../../lib/tmdb-image';
 
@@ -34,7 +35,7 @@ async function readFilmLight(path: string): Promise<FilmLight | null> {
  * Görselin rengi ve parlaklığı; hazır olana kadar öncekiler. Okunamazsa null döner ve tasarımın
  * yedek değerleri kullanılır; bu süs olduğu için hatası kullanıcıya gösterilmez.
  */
-export function useFilmLight(path: string | null): FilmLight | null {
+function useFilmLight(path: string | null): FilmLight | null {
   const { data } = useQuery({
     queryKey: ['film-light', path],
     queryFn: () => readFilmLight(path ?? ''),
@@ -44,4 +45,23 @@ export function useFilmLight(path: string | null): FilmLight | null {
     placeholderData: keepPreviousData,
   });
   return data ?? null;
+}
+
+/**
+ * Görselin rengini ve parlaklığını sayfaya uygular. Değerler kökte ayarlanır: menü, afiş sıraları,
+ * odak halkası ve seçim rengi de filmi izler. Bileşen kapanınca yedek değerlere dönülür.
+ */
+export function useRoomLight(path: string | null) {
+  const light = useFilmLight(path);
+
+  useEffect(() => {
+    if (!light) return;
+    const { style } = document.documentElement;
+    if (light.color) style.setProperty('--color-film', light.color);
+    style.setProperty('--light-strength', String(light.strength));
+    return () => {
+      style.removeProperty('--color-film');
+      style.removeProperty('--light-strength');
+    };
+  }, [light]);
 }

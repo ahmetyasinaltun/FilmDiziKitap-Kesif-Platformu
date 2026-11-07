@@ -4,23 +4,36 @@
  */
 export type {
   CastMember,
+  ContentSummary,
   CrewMember,
+  MediaType,
   MovieDetail,
   Paginated,
+  PersonSummary,
+  SearchResult,
   TvDetail,
   WatchProvider,
   WatchProviders,
 } from '../../../server/src/domain/content';
 
-import type { ContentSummary, MovieDetail, TvDetail } from '../../../server/src/domain/content';
+import type {
+  ContentSummary,
+  MediaType,
+  MovieDetail,
+  TvDetail,
+} from '../../../server/src/domain/content';
 
 export type TitleType = 'movie' | 'tv';
 export type TitleDetail = MovieDetail | TvDetail;
 /** Film ve dizi kartı; kitaplar ayrı bölümde gösterilir. */
 export type TitleSummary = ContentSummary & { type: TitleType };
 
-const TITLE_PATHS: Record<TitleType, string> = { movie: 'film', tv: 'dizi' };
+const CONTENT_PATHS: Record<MediaType, string> = { movie: 'film', tv: 'dizi', book: 'kitap' };
 
-export function titlePath(type: TitleType, id: string): string {
-  return `/${TITLE_PATHS[type]}/${encodeURIComponent(id)}`;
+export function contentPath(type: MediaType, id: string): string {
+  return `/${CONTENT_PATHS[type]}/${encodeURIComponent(id)}`;
+}
+
+export function personPath(id: string): string {
+  return `/kisi/${encodeURIComponent(id)}`;
 }

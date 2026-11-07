@@ -1,56 +1,83 @@
 import type { UseQueryResult } from '@tanstack/react-query';
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import { Link } from 'react-router';
-import { titlePath, type TitleSummary } from '../lib/content';
+import { contentPath, type ContentSummary, type TitleSummary } from '../lib/content';
 import { formatRating } from '../lib/format';
-import { tmdbImage, tmdbSrcSet } from '../lib/tmdb-image';
+import { posterSources, tmdbImage, tmdbSrcSet } from '../lib/tmdb-image';
 import { QueryError } from './QueryError';
 
 const SKELETON_COUNT = 6;
 const scrollClass =
   'row-scroll -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 py-1.5 sm:mx-0 sm:px-1.5 lg:grid lg:gap-5 lg:overflow-visible lg:p-0';
 
-const summaryLine = (item: TitleSummary) =>
-  [item.year, item.rating != null ? formatRating(item.rating) : null]
+const TYPE_LABELS = { movie: 'Film', tv: 'Dizi', book: 'Kitap' };
+
+function detailLine(item: ContentSummary, showType: boolean) {
+  if (item.type === 'book') return item.authorNames?.join(', ') ?? item.year;
+  return [
+    showType ? TYPE_LABELS[item.type] : null,
+    item.year,
+    item.rating != null ? formatRating(item.rating) : null,
+  ]
     .filter((part) => part !== null)
     .join(' · ');
+}
 
-function PosterCard({ item }: { item: TitleSummary }) {
-  const details = summaryLine(item);
+/**
+ * 2:3 görsel kutusu. Ad her zaman altta durur, görsel gelirse üstünü örter. Open Library kapağı
+ * geç verebiliyor ya da kapak yoksa görünmez bir görsel dönüyor; kutu yine de boş kalmaz.
+ */
+export function CoverFrame({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="relative aspect-[2/3] overflow-hidden bg-room-raised">
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 flex items-center justify-center overflow-hidden p-2 text-center font-display leading-snug [overflow-wrap:anywhere]"
+      >
+        {title}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+interface PosterCardProps {
+  item: ContentSummary;
+  /** Karışık sonuçlarda "Film" / "Dizi" etiketi */
+  showType?: boolean;
+}
+
+export function PosterCard({ item, showType = false }: PosterCardProps) {
+  const details = detailLine(item, showType);
 
   return (
-    <Link to={titlePath(item.type, item.id)} className="group block">
-      <div className="aspect-[2/3] overflow-hidden bg-room-raised">
-        {item.poster ? (
+    <Link to={contentPath(item.type, item.id)} className="group block">
+      <CoverFrame title={item.title}>
+        {item.poster && (
           <img
-            src={tmdbImage(item.poster, 'w342')}
-            srcSet={tmdbSrcSet(item.poster, ['w185', 'w342'])}
+            {...posterSources(item.poster)}
             sizes="(min-width: 64rem) 11rem, 10rem"
             loading="lazy"
             decoding="async"
             alt=""
-            className="size-full object-cover brightness-90 transition-[filter] duration-200 group-hover:brightness-110"
+            className="relative size-full object-cover brightness-90 transition-[filter] duration-200 group-hover:brightness-110"
           />
-        ) : (
-          <span className="grid size-full place-items-center p-3 text-center font-display text-lg">
-            {item.title}
-          </span>
         )}
-      </div>
+      </CoverFrame>
       <h3 className="mt-2 line-clamp-2 font-medium leading-snug">{item.title}</h3>
-      {details && <p className="text-sm text-light-dim">{details}</p>}
+      {details && <p className="line-clamp-1 text-sm text-light-dim">{details}</p>}
     </Link>
   );
 }
 
 /** Küçük perde: sahne görseli ve altyazı olarak ad. Ana sahnenin diliyle konuşur. */
-function ScreenCard({ item }: { item: TitleSummary }) {
+function ScreenCard({ item }: { item: ContentSummary }) {
   const image = item.backdrop ?? item.poster;
-  const details = summaryLine(item);
+  const details = detailLine(item, false);
 
   return (
     <Link
-      to={titlePath(item.type, item.id)}
+      to={contentPath(item.type, item.id)}
       className="group relative block aspect-video overflow-hidden bg-room-raised"
     >
       {image && (
@@ -93,7 +120,7 @@ type RowLayout = keyof typeof LAYOUTS;
 
 interface PosterRowProps {
   title: string;
-  items: TitleSummary[];
+  items: ContentSummary[];
   layout?: RowLayout;
 }
 

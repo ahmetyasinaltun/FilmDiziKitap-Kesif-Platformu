@@ -56,7 +56,10 @@ export function AppLayout() {
             <Link
               to="/arama"
               aria-label="Ara"
-              className="grid size-11 place-items-center text-light-dim transition-colors duration-200 hover:text-light"
+              aria-current={pathname === '/arama' ? 'page' : undefined}
+              className={`grid size-11 place-items-center transition-colors duration-200 hover:text-light ${
+                pathname === '/arama' ? 'text-light' : 'text-light-dim'
+              }`}
             >
               <SearchIcon />
             </Link>

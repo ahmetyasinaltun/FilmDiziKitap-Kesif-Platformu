@@ -144,6 +144,11 @@
     }
   }
 
+  /* Tarayıcının kendi temizleme düğmesi yerine tasarımdaki düğme kullanılıyor. */
+  .search-input::-webkit-search-cancel-button {
+    appearance: none;
+  }
+
   /* Dokunmatikte çubuk gizli; farede ince çubuk var, yoksa sağda kalanlara ulaşılamaz. */
   .row-scroll {
     scrollbar-width: none;

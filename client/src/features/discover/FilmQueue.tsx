@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Link } from 'react-router';
-import { titlePath, type TitleSummary } from '../../lib/content';
+import { contentPath, type TitleSummary } from '../../lib/content';
 import { tmdbImage, tmdbSrcSet } from '../../lib/tmdb-image';
 
 /** Fare sıranın üzerinden hızla geçerken her afişte ışık değişmesin. */
@@ -34,7 +34,7 @@ export function FilmQueue({ items, selectedId, onSelect }: FilmQueueProps) {
         return (
           <li key={`${item.type}-${item.id}`} className="shrink-0 snap-start">
             <Link
-              to={titlePath(item.type, item.id)}
+              to={contentPath(item.type, item.id)}
               aria-current={active ? 'true' : undefined}
               aria-label={`${item.title}: ayrıntılara git`}
               onPointerEnter={(event) => {

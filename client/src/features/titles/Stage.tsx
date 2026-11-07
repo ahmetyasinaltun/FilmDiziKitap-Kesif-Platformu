@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
+import { useCallback, useRef, useState, type ReactNode, type Ref } from 'react';
 import { Link } from 'react-router';
 import { Perde, RoomLight } from '../perde/Perde';
-import { useFilmLight } from '../perde/use-film-color';
-import { titlePath, type TitleDetail, type TitleSummary } from '../../lib/content';
+import { useRoomLight } from '../perde/use-room-light';
+import { contentPath, type TitleDetail, type TitleSummary } from '../../lib/content';
 import { metaLine, scoreLine, whereLine } from './decision';
 
 const buttonBase =
@@ -131,19 +131,7 @@ export function Stage({
   children,
 }: StageProps) {
   const image = summary.backdrop ?? detail?.backdrop ?? summary.poster;
-  const light = useFilmLight(image ?? null);
-
-  // Kökte ayarla: menü, afiş sıraları, odak halkası ve seçim rengi de filmi izlesin.
-  useEffect(() => {
-    if (!light) return;
-    const { style } = document.documentElement;
-    if (light.color) style.setProperty('--color-film', light.color);
-    style.setProperty('--light-strength', String(light.strength));
-    return () => {
-      style.removeProperty('--color-film');
-      style.removeProperty('--light-strength');
-    };
-  }, [light]);
+  useRoomLight(image ?? null);
 
   // Başka yapıma geçilince fragman kendiliğinden kapanır.
   const [trailerOf, setTrailerOf] = useState<string | null>(null);
@@ -156,7 +144,7 @@ export function Stage({
   const playing = trailerOf === summary.id ? trailerKey : null;
 
   const meta = detail ? metaLine(detail) : summary.year;
-  const detailPath = titlePath(summary.type, summary.id);
+  const detailPath = contentPath(summary.type, summary.id);
 
   return (
     <section aria-label={linkToDetail ? 'Öne çıkan yapım' : undefined} className="relative">
