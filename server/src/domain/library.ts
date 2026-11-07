@@ -21,7 +21,7 @@ export type ContentCard = Pick<
 
 export interface LibraryEntry {
   status: LibraryStatus;
-  /** 1-10 (arayüzde yarım adımlı 5 yıldız) */
+  /** 1-10; arayüzde de sayı olarak seçilir, dış puanlarla aynı ölçek */
   rating: number | null;
   /** "İzledim / okudum"a geçiş */
   finishedAt: string | null;

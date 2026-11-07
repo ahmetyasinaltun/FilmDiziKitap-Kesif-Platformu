@@ -1,18 +1,10 @@
 import type { Request } from 'express';
+import type { SessionUser } from '../domain/user.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { AppError } from '../lib/errors.js';
 import { hashPassword, verifyPassword } from '../lib/password.js';
 import { prisma } from '../lib/prisma.js';
 import { readSessionToken, type SessionToken } from '../lib/session.js';
-
-/** Oturumdaki kullanıcı: kendi bilgileri (e-posta dahil). Şifre hash'i asla dışarı çıkmaz. */
-export interface SessionUser {
-  id: string;
-  username: string;
-  email: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-}
 
 const sessionUserSelect = {
   id: true,
