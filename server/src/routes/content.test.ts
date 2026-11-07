@@ -129,6 +129,16 @@ describe('GET /api/movies/:id', () => {
 const emptyPage = { page: 1, totalPages: 0, totalResults: 0, results: [] };
 
 describe('GET /api/search', () => {
+  it('type=titles sadece TMDB karışık aramasını yapar, kitapları beklemez', async () => {
+    vi.mocked(tmdb.searchTmdb).mockResolvedValue(emptyPage);
+
+    const res = await request(app).get('/api/search?q=kar&type=titles');
+
+    expect(res.status).toBe(200);
+    expect(tmdb.searchTmdb).toHaveBeenCalledWith('multi', 'kar', 1);
+    expect(openLibrary.searchBooks).not.toHaveBeenCalled();
+  });
+
   it('boş aramayı Türkçe mesajla reddeder', async () => {
     const res = await request(app).get('/api/search?q=%20');
     expect(res.status).toBe(400);

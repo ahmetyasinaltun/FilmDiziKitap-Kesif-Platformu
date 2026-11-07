@@ -91,9 +91,9 @@ export function toTvSummary(
 export function toSearchResult(item: TmdbMultiItem): SearchResult {
   switch (item.media_type) {
     case 'movie':
-      return toMovieSummary(item, { withOverview: true });
+      return toMovieSummary(item, { withOverview: true, withBackdrop: true });
     case 'tv':
-      return toTvSummary(item, { withOverview: true });
+      return toTvSummary(item, { withOverview: true, withBackdrop: true });
     case 'person':
       return {
         type: 'person',

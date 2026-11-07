@@ -10,11 +10,13 @@ export const searchRouter = Router();
 
 const searchQuery = pageQuery.extend({
   q: z.string().trim().min(1, 'Aramak için bir şey yaz.').max(100),
-  type: z.enum(['all', 'movie', 'tv', 'person', 'book']).default('all'),
+  type: z.enum(['all', 'titles', 'movie', 'tv', 'person', 'book']).default('all'),
 });
 
 /**
  * - `type=all` (varsayılan): film/dizi/kişi ve kitaplar ayrı bölümlerde (`CombinedSearch`)
+ * - `type=titles`: sadece film/dizi/kişi. Arayüz kitapları ayrı ister: Open Library yavaş
+ *   kaldığında film sonuçları onu beklemez.
  * - `type=movie|tv|person|book`: tek tür, sayfalı liste (`Paginated`)
  */
 searchRouter.get('/', publicCache(3600), async (req, res) => {
@@ -27,5 +29,9 @@ searchRouter.get('/', publicCache(3600), async (req, res) => {
     res.json(result);
     return;
   }
-  res.json(type === 'book' ? await searchBooks(q, page) : await searchTmdb(type, q, page));
+  if (type === 'book') {
+    res.json(await searchBooks(q, page));
+    return;
+  }
+  res.json(await searchTmdb(type === 'titles' ? 'multi' : type, q, page));
 });
