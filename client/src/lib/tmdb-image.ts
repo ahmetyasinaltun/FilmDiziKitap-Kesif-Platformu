@@ -16,8 +16,21 @@ export function posterSources(poster: string) {
   }
   return {
     src: poster,
-    srcSet: `${poster} 180w, ${poster.replace('-M.jpg', '-L.jpg')} 400w`,
+    srcSet: `${poster} 180w, ${largeCover(poster)} 400w`,
   };
+}
+
+/** Kitap kapağının büyük hali; Open Library'de en iyi kalite budur. */
+export function largeCover(poster: string): string {
+  return poster.replace('-M.jpg', '-L.jpg');
+}
+
+/**
+ * Oda ışığı ve renk okuma için küçük görsel. Kartlarda kullanılmayan bir boyut seçildi: aynı adres
+ * düz `<img>` ile de yüklenirse tarayıcı izinsiz kopyayı önbelleğe alır ve CORS isteği reddedilir.
+ */
+export function lightImage(path: string): string {
+  return path.startsWith('/') ? tmdbImage(path, 'w300') : path.replace('-M.jpg', '-S.jpg');
 }
 
 /** "w342 342w, w500 500w" biçiminde; tarayıcı ekrana uygun olanı seçer. */

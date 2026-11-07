@@ -3,6 +3,7 @@
  * ama iki taraf aynı tanımı kullandığı için API biçimi değişince tip hatası burada görünür.
  */
 export type {
+  BookDetail,
   CastMember,
   ContentSummary,
   CrewMember,
@@ -32,6 +33,10 @@ const CONTENT_PATHS: Record<MediaType, string> = { movie: 'film', tv: 'dizi', bo
 
 export function contentPath(type: MediaType, id: string): string {
   return `/${CONTENT_PATHS[type]}/${encodeURIComponent(id)}`;
+}
+
+export function authorPath(id: string): string {
+  return `/yazar/${encodeURIComponent(id)}`;
 }
 
 export function personPath(id: string): string {

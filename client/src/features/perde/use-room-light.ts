@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { pickFilmColor, pickLightStrength } from '../../lib/film-color';
-import { tmdbImage } from '../../lib/tmdb-image';
+import { lightImage } from '../../lib/tmdb-image';
 
 const SAMPLE_WIDTH = 48;
 const SAMPLE_HEIGHT = 27;
@@ -13,11 +13,11 @@ interface FilmLight {
   strength: number;
 }
 
-/** TMDB görselleri CORS'a açık; bu yüzden tarayıcıda küçük bir tuvale çizilip okunabiliyor. */
+/** TMDB ve Open Library görselleri CORS'a açık; bu yüzden tarayıcıda küçük bir tuvale çizilip okunabiliyor. */
 async function readFilmLight(path: string): Promise<FilmLight | null> {
   const image = new Image();
   image.crossOrigin = 'anonymous';
-  image.src = tmdbImage(path, 'w300');
+  image.src = lightImage(path);
   await image.decode();
 
   const canvas = document.createElement('canvas');

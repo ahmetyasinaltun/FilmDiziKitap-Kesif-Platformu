@@ -1,7 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useId, type ReactNode } from 'react';
 import { Link } from 'react-router';
-import { contentPath, type ContentSummary, type TitleSummary } from '../lib/content';
+import { contentPath, type ContentSummary } from '../lib/content';
 import { formatRating } from '../lib/format';
 import { posterSources, tmdbImage, tmdbSrcSet } from '../lib/tmdb-image';
 import { QueryError } from './QueryError';
@@ -27,12 +27,23 @@ function detailLine(item: ContentSummary, showType: boolean) {
  * 2:3 görsel kutusu. Ad her zaman altta durur, görsel gelirse üstünü örter. Open Library kapağı
  * geç verebiliyor ya da kapak yoksa görünmez bir görsel dönüyor; kutu yine de boş kalmaz.
  */
-export function CoverFrame({ title, children }: { title: string; children: ReactNode }) {
+export function CoverFrame({
+  title,
+  className = '',
+  compact = false,
+  children,
+}: {
+  title: string;
+  className?: string;
+  /** Küçük kutularda ad daha küçük yazılır */
+  compact?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <div className="relative aspect-[2/3] overflow-hidden bg-room-raised">
+    <div className={`relative aspect-[2/3] overflow-hidden bg-room-raised ${className}`}>
       <span
         aria-hidden="true"
-        className="absolute inset-0 flex items-center justify-center overflow-hidden p-2 text-center font-display leading-snug [overflow-wrap:anywhere]"
+        className={`absolute inset-0 flex items-center justify-center overflow-hidden p-2 text-center font-display leading-snug [overflow-wrap:anywhere] ${compact ? 'text-sm' : ''}`}
       >
         {title}
       </span>
@@ -147,7 +158,7 @@ export function PosterRow({ title, items, layout = 'poster' }: PosterRowProps) {
 
 interface QueryPosterRowProps {
   title: string;
-  query: UseQueryResult<TitleSummary[]>;
+  query: UseQueryResult<ContentSummary[]>;
   limit: number;
   layout?: RowLayout;
 }

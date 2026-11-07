@@ -14,6 +14,7 @@ const isTitleSection = (path: string) =>
 export function AppLayout() {
   const { pathname } = useLocation();
   const inTitles = isTitleSection(pathname);
+  const inBooks = pathname === '/kitap' || pathname.startsWith('/kitap/');
 
   return (
     <>
@@ -46,8 +47,8 @@ export function AppLayout() {
             </Link>
             <Link
               to="/kitap"
-              aria-current={pathname === '/kitap' ? 'page' : undefined}
-              className={navLinkClass(pathname === '/kitap')}
+              aria-current={inBooks ? 'true' : undefined}
+              className={navLinkClass(inBooks)}
             >
               Kitap
             </Link>
@@ -81,8 +82,8 @@ export function AppLayout() {
         <div className="perde-width page-gutter py-8 text-sm leading-relaxed text-light-dim">
           <p className="max-w-[65ch]">
             Film ve dizi verileri TMDB'den, dış puanlar OMDb'den, nerede izlenir verisi
-            JustWatch'tan gelir. Bu ürün TMDB API'sini kullanır ancak TMDB tarafından onaylanmamış
-            veya sertifikalandırılmamıştır.
+            JustWatch'tan, kitap verileri Open Library'den gelir. Bu ürün TMDB API'sini kullanır
+            ancak TMDB tarafından onaylanmamış veya sertifikalandırılmamıştır.
           </p>
         </div>
       </footer>

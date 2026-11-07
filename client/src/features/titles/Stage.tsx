@@ -1,22 +1,12 @@
 import { useCallback, useRef, useState, type ReactNode, type Ref } from 'react';
 import { Link } from 'react-router';
+import { filmButton, quietButton } from '../../components/button-styles';
+import { LibraryButton } from '../library/LibraryButton';
 import { Perde, RoomLight } from '../perde/Perde';
 import { useRoomLight } from '../perde/use-room-light';
 import { contentPath, type TitleDetail, type TitleSummary } from '../../lib/content';
 import { metaLine, scoreLine, whereLine } from './decision';
-
-const buttonBase =
-  'pressable flex h-12 cursor-pointer items-center rounded-full px-6 font-bold sm:h-[3.375rem] sm:px-7 sm:text-lg';
-
-/**
- * Vitrinde başlık tek satır ve sabit yükseklikte. Uzun başlık iki satıra insaydı alttaki sıra
- * kayar, fare başka afişin üstünde kalır ve seçim kendiliğinden değişirdi.
- */
-function vitrinTitleSize(title: string): string {
-  if (title.length <= 15) return 'text-[2.5rem] sm:text-[3.5rem] lg:text-[3.75rem]';
-  if (title.length <= 24) return 'text-[1.75rem] sm:text-[2.5rem] lg:text-[3rem]';
-  return 'text-[1.375rem] sm:text-[2rem] lg:text-[2.25rem]';
-}
+import { vitrinTitleSize } from './title-size';
 
 function DecisionSubtitle({
   detail,
@@ -67,44 +57,20 @@ interface ActionsProps {
 }
 
 function Actions({ trailerKey, loading, onPlay, trailerButton }: ActionsProps) {
-  const [notice, setNotice] = useState(false);
-
   return (
-    <div className="relative shrink-0 lg:pt-3">
-      <div className="flex flex-wrap gap-3 lg:justify-end">
-        {(trailerKey || loading) && (
-          <button
-            ref={trailerButton}
-            type="button"
-            onClick={onPlay}
-            disabled={!trailerKey}
-            className={`${buttonBase} bg-film text-film-ink hover:brightness-110 disabled:cursor-default disabled:opacity-60`}
-          >
-            Fragmanı izle
-          </button>
-        )}
+    <div className="flex shrink-0 flex-wrap gap-3 lg:justify-end lg:pt-3">
+      {(trailerKey || loading) && (
         <button
+          ref={trailerButton}
           type="button"
-          onClick={() => setNotice(true)}
-          className={`${buttonBase} bg-light/10 text-light shadow-[inset_0_0_0_1px_var(--color-line)] hover:bg-light/15`}
+          onClick={onPlay}
+          disabled={!trailerKey}
+          className={filmButton}
         >
-          İzleyeceğim
+          Fragmanı izle
         </button>
-      </div>
-      <p
-        role="status"
-        className="mt-2 text-sm text-light-dim empty:mt-0 lg:absolute lg:right-0 lg:top-full lg:mt-1 lg:whitespace-nowrap"
-      >
-        {notice && (
-          <>
-            Kaydetmek için{' '}
-            <Link to="/giris" className="underline underline-offset-4 hover:text-light">
-              giriş yap
-            </Link>
-            .
-          </>
-        )}
-      </p>
+      )}
+      <LibraryButton label="İzleyeceğim" className={quietButton} />
     </div>
   );
 }

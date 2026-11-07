@@ -1,13 +1,16 @@
 import { useRef } from 'react';
 import { Link } from 'react-router';
-import { contentPath, type TitleSummary } from '../../lib/content';
-import { tmdbImage, tmdbSrcSet } from '../../lib/tmdb-image';
+import { CoverFrame } from '../../components/PosterRow';
+import { contentPath, type ContentSummary } from '../../lib/content';
+import { posterSources } from '../../lib/tmdb-image';
 
 /** Fare sıranın üzerinden hızla geçerken her afişte ışık değişmesin. */
 const HOVER_INTENT_MS = 90;
 
 interface FilmQueueProps {
-  items: TitleSummary[];
+  items: ContentSummary[];
+  /** Ekran okuyucular için sıranın adı */
+  label: string;
   selectedId: string | undefined;
   onSelect: (id: string) => void;
 }
@@ -20,13 +23,13 @@ interface FilmQueueProps {
  * Seçili olup olmadığı dokunma anında saklanır: Android'de odak olayı tıklamadan önce gelir,
  * tıklama anına bakılsaydı afiş o sırada seçilmiş olur ve ilk dokunuş ayrıntıya giderdi.
  */
-export function FilmQueue({ items, selectedId, onSelect }: FilmQueueProps) {
+export function FilmQueue({ items, label, selectedId, onSelect }: FilmQueueProps) {
   const hoverTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const pointer = useRef({ type: 'mouse', wasActive: false });
 
   return (
     <ul
-      aria-label="Bu hafta öne çıkanlar"
+      aria-label={label}
       className="row-scroll queue-bleed mt-5 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 py-2 sm:scroll-px-1.5 sm:gap-5 sm:px-1.5"
     >
       {items.map((item) => {
@@ -54,23 +57,24 @@ export function FilmQueue({ items, selectedId, onSelect }: FilmQueueProps) {
                 event.preventDefault();
                 onSelect(item.id);
               }}
-              className={`block aspect-[2/3] w-24 bg-room-raised outline-offset-4 sm:w-[7.375rem] ${
+              className={`block w-24 outline-offset-4 sm:w-[7.375rem] ${
                 active ? 'outline-2 outline-film' : ''
               }`}
             >
-              {item.poster && (
-                <img
-                  src={tmdbImage(item.poster, 'w185')}
-                  srcSet={tmdbSrcSet(item.poster, ['w185', 'w342'])}
-                  sizes="7.5rem"
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  className={`size-full object-cover transition-[filter] duration-200 ${
-                    active ? '' : 'brightness-50 saturate-[0.8] hover:brightness-90'
-                  }`}
-                />
-              )}
+              <CoverFrame title={item.title} compact>
+                {item.poster && (
+                  <img
+                    {...posterSources(item.poster)}
+                    sizes="7.5rem"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className={`relative size-full object-cover transition-[filter] duration-200 ${
+                      active ? '' : 'brightness-50 saturate-[0.8] hover:brightness-90'
+                    }`}
+                  />
+                )}
+              </CoverFrame>
             </Link>
           </li>
         );

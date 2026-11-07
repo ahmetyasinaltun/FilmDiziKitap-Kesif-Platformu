@@ -49,7 +49,12 @@ export function Vitrin() {
       inTheaters={inTheaters}
       linkToDetail
     >
-      <FilmQueue items={items} selectedId={selected.id} onSelect={setSelectedId} />
+      <FilmQueue
+        items={items}
+        label="Bu hafta öne çıkanlar"
+        selectedId={selected.id}
+        onSelect={setSelectedId}
+      />
     </Stage>
   );
 }

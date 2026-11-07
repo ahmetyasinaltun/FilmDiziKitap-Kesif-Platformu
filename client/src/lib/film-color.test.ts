@@ -31,9 +31,9 @@ describe('pickLightStrength', () => {
     expect(pickLightStrength(pixels([20, 20, 20], 10))).toBe(0.6);
   });
 
-  it('parlak görselde kısılır ama hiç sönmez', () => {
+  it('parlak görselde sonuç hep aynı karanlık seviyede kalacak kadar kısılır', () => {
     expect(pickLightStrength(pixels([100, 100, 100], 10))).toBeCloseTo(0.3);
-    expect(pickLightStrength(pixels([255, 255, 255], 10))).toBe(0.2);
+    expect(pickLightStrength(pixels([255, 255, 255], 10)) * 255).toBeCloseTo(30);
   });
 
   it('boş veride varsayılan değeri döner', () => {

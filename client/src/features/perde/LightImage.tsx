@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { tmdbImage, tmdbSrcSet } from '../../lib/tmdb-image';
+import { largeCover, lightImage, tmdbImage, tmdbSrcSet } from '../../lib/tmdb-image';
 
-type Variant = 'screen' | 'light';
+type Variant = 'screen' | 'cover' | 'light';
 
 interface Layer {
   id: number;
@@ -13,7 +13,15 @@ function imageProps(path: string, variant: Variant) {
   // CORS kipi şart: renk bu görselden okunuyor. Aynı adres önce düz <img> ile yüklenirse
   // tarayıcı izinsiz kopyayı önbelleğe alır ve renk okuma isteği de onu kullanıp reddedilir.
   if (variant === 'light') {
-    return { src: tmdbImage(path, 'w300'), crossOrigin: 'anonymous' as const };
+    return { src: lightImage(path), crossOrigin: 'anonymous' as const };
+  }
+  if (variant === 'cover') {
+    return {
+      src: largeCover(path),
+      srcSet: `${path} 180w, ${largeCover(path)} 400w`,
+      sizes: '(min-width: 64rem) 20rem, 13rem',
+      fetchPriority: 'high' as const,
+    };
   }
   return {
     src: tmdbImage(path, 'w1280'),
@@ -33,6 +41,9 @@ interface LightImageProps {
 /**
  * Görsel değişince yenisi yüklenip eskisinin üstünde çözülür; bitince alttakiler kaldırılır.
  * Eski görsel yenisi hazır olana kadar durduğu için hızlı geçişlerde ekran boş kalmaz.
+ *
+ * Kapakta tersi geçerli: Open Library yavaş kalabiliyor ve başka bir kitabın kapağı doğru başlığın
+ * yanında duramaz. Eskisi hemen kalkar, yenisi gelene kadar kutuda kitabın adı görünür.
  */
 export function LightImage({ path, variant, className = '' }: LightImageProps) {
   const [layers, setLayers] = useState<Layer[]>([]);
@@ -40,7 +51,7 @@ export function LightImage({ path, variant, className = '' }: LightImageProps) {
   const top = layers.at(-1);
   if (path && path !== top?.path) {
     setLayers([
-      ...layers.filter((layer) => layer.ready),
+      ...(variant === 'cover' ? [] : layers.filter((layer) => layer.ready)),
       { id: (top?.id ?? 0) + 1, path, ready: false },
     ]);
   }
