@@ -1,3 +1,203 @@
 @import 'tailwindcss';
 
-/* Tasarım token'ları (renk, font, boşluk) Faz 4'te DESIGN.md'ye göre buraya @theme ile eklenecek. */
+/*
+ * Görsel dünya: karanlık salon, tek ışık kaynağı perde.
+ * Sabit vurgu rengi yok: --color-film her yapımın görselinden okunur ve sayfada
+ * ilgili bölümün üzerinde ezilir (features/perde). Buradaki değer yedektir.
+ */
+@theme {
+  --color-room: #060505;
+  --color-room-raised: #171412;
+  --color-light: #f4efe6;
+  --color-light-dim: #b8b0a3;
+  --color-line: rgb(244 239 230 / 0.16);
+  --color-film: #e8a53c;
+  --color-film-ink: #17110a;
+
+  --font-sans: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Gloock', ui-serif, Georgia, serif;
+
+  --ease-light: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+:root {
+  --header-h: 4.5rem;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background-color: var(--color-room);
+    scrollbar-color: var(--color-line) var(--color-room);
+  }
+
+  body {
+    background-color: var(--color-room);
+    color: var(--color-light);
+    font-family: var(--font-sans);
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Çift dokunma büyütmesi kapalı: tarayıcı ikinci dokunuşu beklemez, tıklama anında gelir. */
+  a,
+  button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1,
+  h2 {
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background-color: var(--color-film);
+    color: var(--color-film-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-film);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* Perdenin ve altındaki içeriğin ortak genişliği: kısa ekranlarda perde de küçülür. */
+  .perde-width {
+    width: 100%;
+    margin-inline: auto;
+
+    @media (min-width: 40rem) {
+      width: min(100% - 3rem, 70rem, 56svh * 2.39);
+      min-width: min(100% - 3rem, 40rem);
+    }
+  }
+
+  /* Alt satırlar için aynı hiza; telefonda perde kenardan kenara, metin kenarda boşluklu. */
+  .page-gutter {
+    padding-inline: 1rem;
+
+    @media (min-width: 40rem) {
+      padding-inline: 0;
+    }
+  }
+
+  /* Altyazı: her görselin üstünde okunabilsin diye dış hat ve yumuşak gölge birlikte. */
+  .subtitle-text {
+    color: #fff;
+    text-shadow:
+      0 0 2px #000,
+      0 1px 3px #000,
+      0 2px 14px rgb(0 0 0 / 0.8);
+  }
+
+  .room-light-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Işığın değişimi: hızlı başlar, yumuşak biter; bulanıklık iki görselin üst üste görünmesini saklar. */
+  .light-fade {
+    opacity: 0;
+    filter: blur(6px);
+    transition:
+      opacity 260ms var(--ease-light),
+      filter 260ms var(--ease-light);
+
+    &[data-ready='true'] {
+      opacity: 1;
+      filter: blur(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      filter: none;
+      transition-duration: 1ms;
+    }
+  }
+
+  .pressable {
+    transition:
+      transform 140ms var(--ease-light),
+      background-color 200ms ease,
+      filter 200ms ease,
+      color 200ms ease;
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &:active {
+        transform: none;
+      }
+    }
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+/* Perdeden yayılan ışık: sayfanın üstüne yayılır, aşağı doğru salon karanlığına döner. */
+@layer components {
+  .room-light {
+    position: absolute;
+    z-index: -1;
+    inset-inline: 0;
+    top: calc(var(--header-h) * -1);
+    height: min(140svh, 68rem);
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0.6;
+    mask-image: linear-gradient(to bottom, #000 45%, transparent);
+
+    /* İnce gren: çok koyu renk geçişlerinde oluşan halkaları dağıtır. */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.09;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+  }
+
+  /* Küçük kutu büyütülür: bulanıklık az piksel üzerinde hesaplanır, telefonda da akıcı kalır. */
+  .room-light-inner {
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 30%;
+    height: 30%;
+    transform: scale(4);
+    transform-origin: top left;
+    filter: blur(24px) saturate(1.6);
+  }
+
+  .perde-screen {
+    box-shadow: 0 30px 120px color-mix(in srgb, var(--color-film) 16%, transparent);
+    transition: box-shadow 260ms var(--ease-light);
+  }
+
+  /* Perdenin zemine vuran yansıması */
+  .perde-floor {
+    position: absolute;
+    z-index: -1;
+    inset-inline: 0;
+    top: 96%;
+    height: 80%;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0.32;
+    transform: scaleY(-1);
+    filter: blur(34px) saturate(1.3);
+    mask-image: linear-gradient(to top, #000, transparent 85%);
+  }
+}
