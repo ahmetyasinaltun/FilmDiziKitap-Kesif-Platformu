@@ -52,7 +52,7 @@ function originalIfDifferent(title: string, original: string | null): string | n
   return original && original !== title ? original : null;
 }
 
-type SummaryOptions = { withOverview?: boolean };
+type SummaryOptions = { withOverview?: boolean; withBackdrop?: boolean };
 
 export function toMovieSummary(
   item: TmdbMovieItem,
@@ -67,6 +67,7 @@ export function toMovieSummary(
     poster: item.poster_path,
     overview: options.withOverview ? item.overview : null,
     rating: ratingOf(item.vote_average, item.vote_count),
+    ...(options.withBackdrop ? { backdrop: item.backdrop_path } : {}),
   };
 }
 
@@ -83,6 +84,7 @@ export function toTvSummary(
     poster: item.poster_path,
     overview: options.withOverview ? item.overview : null,
     rating: ratingOf(item.vote_average, item.vote_count),
+    ...(options.withBackdrop ? { backdrop: item.backdrop_path } : {}),
   };
 }
 

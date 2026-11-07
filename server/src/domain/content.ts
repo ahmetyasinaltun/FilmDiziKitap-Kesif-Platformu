@@ -28,6 +28,8 @@ export interface ContentSummary {
   rating: number | null;
   /** Sadece kitaplarda: yazar adları (kartta yıl yerine yazar gösterilir) */
   authorNames?: string[];
+  /** Sadece trend listesinde: vitrin görseli detay beklemeden gösterilebilsin diye */
+  backdrop?: string | null;
 }
 
 export interface PersonSummary {

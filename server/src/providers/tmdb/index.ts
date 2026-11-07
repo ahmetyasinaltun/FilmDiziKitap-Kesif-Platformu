@@ -36,7 +36,7 @@ import {
 } from './schemas.js';
 
 /** Normalize biçim değişirse artırılır; eski önbellek kayıtları kendiliğinden devre dışı kalır. */
-const VERSION = 1;
+const VERSION = 2;
 const key = (...parts: (string | number)[]) => ['tmdb', `v${VERSION}`, ...parts].join(':');
 
 const HOUR = 60 * 60;
@@ -135,8 +135,9 @@ export function getTrending(type: TrendingType, window: TrendingWindow): Promise
   return cached(key('trending', type, window), { ttl: 3 * HOUR }, async () => {
     const raw = await tmdbGet(`/trending/${type}/${window}`, paginatedSchema(multiItemSchema));
     return raw.results.flatMap((item): ContentSummary[] => {
-      if (item.media_type === 'movie') return [toMovieSummary(item, { withOverview: true })];
-      if (item.media_type === 'tv') return [toTvSummary(item, { withOverview: true })];
+      const options = { withOverview: true, withBackdrop: true };
+      if (item.media_type === 'movie') return [toMovieSummary(item, options)];
+      if (item.media_type === 'tv') return [toTvSummary(item, options)];
       return [];
     });
   });

@@ -4,11 +4,17 @@ import {
   pickTrailer,
   ratingOf,
   toMovieDetail,
+  toMovieSummary,
   toPersonDetail,
   toTvDetail,
   yearOf,
 } from './mappers.js';
-import { movieDetailSchema, personDetailSchema, tvDetailSchema } from './schemas.js';
+import {
+  movieDetailSchema,
+  movieItemSchema,
+  personDetailSchema,
+  tvDetailSchema,
+} from './schemas.js';
 
 const video = (overrides: Record<string, unknown>) => ({
   key: 'k',
@@ -19,6 +25,21 @@ const video = (overrides: Record<string, unknown>) => ({
   iso_639_1: 'en',
   published_at: '2020-01-01T00:00:00Z',
   ...overrides,
+});
+
+describe('toMovieSummary', () => {
+  const item = movieItemSchema.parse({
+    id: 1,
+    title: 'Parazit',
+    backdrop_path: '/sahne.jpg',
+    vote_average: 8.5,
+    vote_count: 10,
+  });
+
+  it('sahne görselini sadece istenirse ekler (öneri listeleri küçük kalsın)', () => {
+    expect(toMovieSummary(item)).not.toHaveProperty('backdrop');
+    expect(toMovieSummary(item, { withBackdrop: true }).backdrop).toBe('/sahne.jpg');
+  });
 });
 
 describe('küçük yardımcılar', () => {
