@@ -14,6 +14,12 @@ server/src/generated/
 .env.*
 !.env.example
 
+# Tasarım aracının yerel dosyaları (taslaklar üçüncü taraf görselleri içerir)
+**/.impeccable/mocks/
+**/.impeccable/questions/
+**/.impeccable/hook.cache.json
+**/.impeccable/review/
+
 # Logs
 npm-debug.log*
 
