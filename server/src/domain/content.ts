@@ -28,7 +28,7 @@ export interface ContentSummary {
   rating: number | null;
   /** Sadece kitaplarda: yazar adları (kartta yıl yerine yazar gösterilir) */
   authorNames?: string[];
-  /** Sadece trend listesinde: vitrin görseli detay beklemeden gösterilebilsin diye */
+  /** Sadece trend ve vizyon listelerinde: vitrin ve sahne kartları için */
   backdrop?: string | null;
 }
 

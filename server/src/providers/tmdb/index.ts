@@ -36,7 +36,7 @@ import {
 } from './schemas.js';
 
 /** Normalize biçim değişirse artırılır; eski önbellek kayıtları kendiliğinden devre dışı kalır. */
-const VERSION = 2;
+const VERSION = 3;
 const key = (...parts: (string | number)[]) => ['tmdb', `v${VERSION}`, ...parts].join(':');
 
 const HOUR = 60 * 60;
@@ -154,7 +154,9 @@ export function getNowPlaying(page: number): Promise<Paginated<ContentSummary>> 
       page: raw.page,
       totalPages: raw.total_pages,
       totalResults: raw.total_results,
-      results: raw.results.map((item) => toMovieSummary(item, { withOverview: true })),
+      results: raw.results.map((item) =>
+        toMovieSummary(item, { withOverview: true, withBackdrop: true }),
+      ),
     };
   });
 }
