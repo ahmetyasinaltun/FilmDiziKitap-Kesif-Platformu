@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { luminanceOf, pickFilmColor, toButtonColor } from './film-color';
+import { luminanceOf, pickFilmColor, pickLightStrength, toButtonColor } from './film-color';
 
 /** Aynı renkten n piksel */
 const pixels = (rgb: [number, number, number], n: number) =>
@@ -18,6 +18,21 @@ describe('pickFilmColor', () => {
 
   it('siyah beyaz görselde renk uydurmaz', () => {
     expect(pickFilmColor([...pixels([10, 10, 10], 50), ...pixels([240, 240, 240], 50)])).toBeNull();
+  });
+});
+
+describe('pickLightStrength', () => {
+  it('koyu görselde ışık tam açık', () => {
+    expect(pickLightStrength(pixels([20, 20, 20], 10))).toBe(0.6);
+  });
+
+  it('parlak görselde kısılır ama hiç sönmez', () => {
+    expect(pickLightStrength(pixels([100, 100, 100], 10))).toBeCloseTo(0.3);
+    expect(pickLightStrength(pixels([255, 255, 255], 10))).toBe(0.2);
+  });
+
+  it('boş veride varsayılan değeri döner', () => {
+    expect(pickLightStrength([])).toBe(0.6);
   });
 });
 

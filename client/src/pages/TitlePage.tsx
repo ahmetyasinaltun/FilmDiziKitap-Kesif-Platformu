@@ -8,6 +8,8 @@ import { useTitle } from '../features/titles/use-title';
 import { ApiError } from '../lib/api';
 import { pageTitle } from '../lib/brand';
 import type { TitleDetail, TitleSummary, TitleType } from '../lib/content';
+
+const SIMILAR_LIMIT = 6;
 import { tmdbImage, tmdbSrcSet } from '../lib/tmdb-image';
 
 function Credits({ title }: { title: TitleDetail }) {
@@ -65,7 +67,10 @@ function TitleBody({ title, inTheaters }: { title: TitleDetail; inTheaters: bool
       </div>
 
       <CastRow cast={title.cast} />
-      <PosterRow title="Benzer yapımlar" items={title.recommendations as TitleSummary[]} />
+      <PosterRow
+        title="Benzer yapımlar"
+        items={title.recommendations.slice(0, SIMILAR_LIMIT) as TitleSummary[]}
+      />
     </div>
   );
 }
@@ -100,7 +105,12 @@ function TitleContent({ type, id }: { type: TitleType; id: string }) {
   return (
     <>
       <title>{pageTitle(title.data.title)}</title>
-      <Stage summary={{ ...title.data, type }} detail={title.data} inTheaters={inTheaters} />
+      <Stage
+        summary={{ ...title.data, type }}
+        detail={title.data}
+        detailStatus="success"
+        inTheaters={inTheaters}
+      />
       <TitleBody title={title.data} inTheaters={inTheaters} />
     </>
   );

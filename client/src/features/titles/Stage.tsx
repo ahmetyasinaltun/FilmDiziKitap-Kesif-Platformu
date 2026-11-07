@@ -1,7 +1,7 @@
-import { useCallback, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
 import { Link } from 'react-router';
 import { Perde, RoomLight } from '../perde/Perde';
-import { useFilmColor } from '../perde/use-film-color';
+import { useFilmLight } from '../perde/use-film-color';
 import { titlePath, type TitleDetail, type TitleSummary } from '../../lib/content';
 import { metaLine, scoreLine, whereLine } from './decision';
 
@@ -13,18 +13,28 @@ const buttonBase =
  * kayar, fare başka afişin üstünde kalır ve seçim kendiliğinden değişirdi.
  */
 function vitrinTitleSize(title: string): string {
-  if (title.length <= 15) return 'text-[2.5rem] sm:text-[3.5rem] lg:text-[4.25rem]';
+  if (title.length <= 15) return 'text-[2.5rem] sm:text-[3.5rem] lg:text-[3.75rem]';
   if (title.length <= 24) return 'text-[1.75rem] sm:text-[2.5rem] lg:text-[3rem]';
   return 'text-[1.375rem] sm:text-[2rem] lg:text-[2.25rem]';
 }
 
 function DecisionSubtitle({
   detail,
+  failed,
   inTheaters,
 }: {
   detail: TitleDetail | undefined;
+  failed: boolean;
   inTheaters: boolean;
 }) {
+  if (failed) {
+    return (
+      <p className="subtitle-text text-center text-[0.9375rem] font-medium sm:text-xl">
+        Puan ve platform bilgisi şu an alınamadı.
+      </p>
+    );
+  }
+
   if (!detail) {
     return (
       <div aria-hidden="true" className="flex flex-col items-center gap-2">
@@ -50,22 +60,25 @@ function DecisionSubtitle({
 
 interface ActionsProps {
   trailerKey: string | null;
+  /** Detay gelene kadar düğme yerini korur; yoksa seçim anında düğmeler yer değiştirirdi. */
+  loading: boolean;
   onPlay: () => void;
   trailerButton: Ref<HTMLButtonElement>;
 }
 
-function Actions({ trailerKey, onPlay, trailerButton }: ActionsProps) {
+function Actions({ trailerKey, loading, onPlay, trailerButton }: ActionsProps) {
   const [notice, setNotice] = useState(false);
 
   return (
     <div className="relative shrink-0 lg:pt-3">
       <div className="flex flex-wrap gap-3 lg:justify-end">
-        {trailerKey && (
+        {(trailerKey || loading) && (
           <button
             ref={trailerButton}
             type="button"
             onClick={onPlay}
-            className={`${buttonBase} bg-film text-film-ink hover:brightness-110`}
+            disabled={!trailerKey}
+            className={`${buttonBase} bg-film text-film-ink hover:brightness-110 disabled:cursor-default disabled:opacity-60`}
           >
             Fragmanı izle
           </button>
@@ -100,6 +113,7 @@ interface StageProps {
   summary: Pick<TitleSummary, 'type' | 'id' | 'title' | 'year' | 'poster' | 'backdrop'>;
   /** Yüklenene kadar altyazı ve künye yer tutucu gösterir. */
   detail: TitleDetail | undefined;
+  detailStatus: 'pending' | 'error' | 'success';
   inTheaters: boolean;
   /** Ana sayfada başlık ayrıntıya götürür; detay sayfasında sayfanın ana başlığıdır. */
   linkToDetail?: boolean;
@@ -108,9 +122,28 @@ interface StageProps {
 }
 
 /** Perde, başlık ve eylemler: ana sayfa vitrini ile detay sayfasının ortak sahnesi. */
-export function Stage({ summary, detail, inTheaters, linkToDetail = false, children }: StageProps) {
+export function Stage({
+  summary,
+  detail,
+  detailStatus,
+  inTheaters,
+  linkToDetail = false,
+  children,
+}: StageProps) {
   const image = summary.backdrop ?? detail?.backdrop ?? summary.poster;
-  const color = useFilmColor(image ?? null);
+  const light = useFilmLight(image ?? null);
+
+  // Kökte ayarla: menü, afiş sıraları, odak halkası ve seçim rengi de filmi izlesin.
+  useEffect(() => {
+    if (!light) return;
+    const { style } = document.documentElement;
+    if (light.color) style.setProperty('--color-film', light.color);
+    style.setProperty('--light-strength', String(light.strength));
+    return () => {
+      style.removeProperty('--color-film');
+      style.removeProperty('--light-strength');
+    };
+  }, [light]);
 
   // Başka yapıma geçilince fragman kendiliğinden kapanır.
   const [trailerOf, setTrailerOf] = useState<string | null>(null);
@@ -126,11 +159,7 @@ export function Stage({ summary, detail, inTheaters, linkToDetail = false, child
   const detailPath = titlePath(summary.type, summary.id);
 
   return (
-    <section
-      aria-label={linkToDetail ? 'Öne çıkan yapım' : undefined}
-      className="relative"
-      style={color ? ({ '--color-film': color } as CSSProperties) : undefined}
-    >
+    <section aria-label={linkToDetail ? 'Öne çıkan yapım' : undefined} className="relative">
       <RoomLight path={image ?? null} />
 
       <div className="perde-width relative">
@@ -140,13 +169,17 @@ export function Stage({ summary, detail, inTheaters, linkToDetail = false, child
           playingTrailer={playing}
           onCloseTrailer={closeTrailer}
         >
-          <DecisionSubtitle detail={detail} inTheaters={inTheaters} />
+          <DecisionSubtitle
+            detail={detail}
+            failed={detailStatus === 'error'}
+            inTheaters={inTheaters}
+          />
         </Perde>
 
         <div className="page-gutter mt-5 flex flex-col gap-5 sm:mt-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 lg:flex-1">
             {linkToDetail ? (
-              <h2 className="flex h-14 items-end sm:h-[4.5rem] lg:h-[5.5rem]">
+              <h2 className="flex h-14 items-end sm:h-[4.5rem] lg:h-[4.875rem]">
                 <Link
                   to={detailPath}
                   title={summary.title}
@@ -176,6 +209,7 @@ export function Stage({ summary, detail, inTheaters, linkToDetail = false, child
           <Actions
             key={summary.id}
             trailerKey={trailerKey}
+            loading={detailStatus === 'pending'}
             onPlay={() => setTrailerOf(summary.id)}
             trailerButton={trailerButton}
           />

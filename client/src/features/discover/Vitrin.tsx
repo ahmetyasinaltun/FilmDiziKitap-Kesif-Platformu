@@ -5,7 +5,7 @@ import { useTitle } from '../titles/use-title';
 import { FilmQueue } from './FilmQueue';
 import { useNowPlaying, useTrending } from './use-discover';
 
-const QUEUE_SIZE = 8;
+const QUEUE_SIZE = 12;
 
 /** Ana sayfanın ilk ekranı: haftanın öne çıkanları perdede, seçim alttaki sırayla değişir. */
 export function Vitrin() {
@@ -42,7 +42,13 @@ export function Vitrin() {
   const inTheaters = nowPlaying.data?.some((item) => item.id === selected.id) ?? false;
 
   return (
-    <Stage summary={selected} detail={detail.data} inTheaters={inTheaters} linkToDetail>
+    <Stage
+      summary={selected}
+      detail={detail.data}
+      detailStatus={detail.status}
+      inTheaters={inTheaters}
+      linkToDetail
+    >
       <FilmQueue items={items} selectedId={selected.id} onSelect={setSelectedId} />
     </Stage>
   );

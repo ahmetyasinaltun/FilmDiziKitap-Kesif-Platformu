@@ -86,4 +86,22 @@ export function pickFilmColor(pixels: ArrayLike<number>): string | null {
   return `hsl(${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%)`;
 }
 
+/** Koyu görselde oda ışığının açıklığı; üst sınır */
+const MAX_ROOM_LIGHT = 0.6;
+const MIN_ROOM_LIGHT = 0.2;
+/** Ortalama parlaklığı (0-255) bu değere inecek kadar kıs: salon karanlık kalsın. */
+const ROOM_BRIGHTNESS = 30;
+
+/** Görselin ortalama parlaklığına göre oda ışığının açıklığı (0-1). */
+export function pickLightStrength(pixels: ArrayLike<number>): number {
+  let sum = 0;
+  let count = 0;
+  for (let i = 0; i + 2 < pixels.length; i += 4) {
+    sum += ((pixels[i] ?? 0) + (pixels[i + 1] ?? 0) + (pixels[i + 2] ?? 0)) / 3;
+    count += 1;
+  }
+  if (sum === 0) return MAX_ROOM_LIGHT;
+  return clamp(ROOM_BRIGHTNESS / (sum / count), MIN_ROOM_LIGHT, MAX_ROOM_LIGHT);
+}
+
 export const luminanceOf = luminance;

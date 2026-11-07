@@ -43,7 +43,7 @@ export function Perde({ path, title, playingTrailer, onCloseTrailer, children }:
         <div
           aria-hidden="true"
           onClick={onCloseTrailer}
-          className="fixed inset-0 z-20 bg-room/95"
+          className="lights-off fixed inset-0 z-20 bg-room/95"
         />
       )}
 

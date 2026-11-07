@@ -16,15 +16,18 @@ interface FilmQueueProps {
  * Perdede ne oynayacağını seçen sıra. Bağlantıdır, ayrıntıya götürür.
  * Fare üzerine gelince, klavye odaklanınca seçer. Dokunmatikte üzerine gelme olmadığı için
  * ilk dokunuş seçer, seçili afişe dokunmak ayrıntıya götürür.
+ *
+ * Seçili olup olmadığı dokunma anında saklanır: Android'de odak olayı tıklamadan önce gelir,
+ * tıklama anına bakılsaydı afiş o sırada seçilmiş olur ve ilk dokunuş ayrıntıya giderdi.
  */
 export function FilmQueue({ items, selectedId, onSelect }: FilmQueueProps) {
   const hoverTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const lastPointer = useRef('mouse');
+  const pointer = useRef({ type: 'mouse', wasActive: false });
 
   return (
     <ul
       aria-label="Bu hafta öne çıkanlar"
-      className="no-scrollbar mt-6 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 py-2 sm:mt-7 sm:scroll-px-1.5 sm:gap-5 sm:px-1.5"
+      className="row-scroll queue-bleed mt-5 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 py-2 sm:scroll-px-1.5 sm:gap-5 sm:px-1.5"
     >
       {items.map((item) => {
         const active = item.id === selectedId;
@@ -41,11 +44,13 @@ export function FilmQueue({ items, selectedId, onSelect }: FilmQueueProps) {
               }}
               onPointerLeave={() => clearTimeout(hoverTimer.current)}
               onPointerDown={(event) => {
-                lastPointer.current = event.pointerType;
+                pointer.current = { type: event.pointerType, wasActive: active };
               }}
               onFocus={() => onSelect(item.id)}
               onClick={(event) => {
-                if (lastPointer.current === 'mouse' || active) return;
+                // detail 0: klavyeyle (Enter) gelen tıklama.
+                if (event.detail === 0) return;
+                if (pointer.current.type === 'mouse' || pointer.current.wasActive) return;
                 event.preventDefault();
                 onSelect(item.id);
               }}

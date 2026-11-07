@@ -15,7 +15,7 @@ export function HomePage() {
       <h1 className="sr-only">{BRAND_NAME}: bugün ne izlesem?</h1>
       <Vitrin />
       <div className="perde-width page-gutter mt-16 space-y-14">
-        <QueryPosterRow title="Vizyonda" query={nowPlaying} limit={ROW_SIZE} />
+        <QueryPosterRow title="Vizyonda" query={nowPlaying} limit={ROW_SIZE} layout="screen" />
         <QueryPosterRow title="Popüler diziler" query={popularTv} limit={ROW_SIZE} />
       </div>
     </>

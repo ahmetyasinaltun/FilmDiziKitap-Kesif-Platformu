@@ -1,12 +1,19 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { pickFilmColor } from '../../lib/film-color';
+import { pickFilmColor, pickLightStrength } from '../../lib/film-color';
 import { tmdbImage } from '../../lib/tmdb-image';
 
 const SAMPLE_WIDTH = 48;
 const SAMPLE_HEIGHT = 27;
 
+interface FilmLight {
+  /** Vurgu rengi; görselde canlı renk yoksa null ve tasarımın yedek rengi kullanılır */
+  color: string | null;
+  /** Oda ışığının açıklığı (0-1) */
+  strength: number;
+}
+
 /** TMDB görselleri CORS'a açık; bu yüzden tarayıcıda küçük bir tuvale çizilip okunabiliyor. */
-async function readFilmColor(path: string): Promise<string | null> {
+async function readFilmLight(path: string): Promise<FilmLight | null> {
   const image = new Image();
   image.crossOrigin = 'anonymous';
   image.src = tmdbImage(path, 'w300');
@@ -19,17 +26,18 @@ async function readFilmColor(path: string): Promise<string | null> {
   if (!context) return null;
 
   context.drawImage(image, 0, 0, SAMPLE_WIDTH, SAMPLE_HEIGHT);
-  return pickFilmColor(context.getImageData(0, 0, SAMPLE_WIDTH, SAMPLE_HEIGHT).data);
+  const { data } = context.getImageData(0, 0, SAMPLE_WIDTH, SAMPLE_HEIGHT);
+  return { color: pickFilmColor(data), strength: pickLightStrength(data) };
 }
 
 /**
- * Görselin rengi, hazır olana kadar önceki renk. Okunamazsa null döner ve tasarımın
- * yedek rengi kullanılır; bu süs olduğu için hatası kullanıcıya gösterilmez.
+ * Görselin rengi ve parlaklığı; hazır olana kadar öncekiler. Okunamazsa null döner ve tasarımın
+ * yedek değerleri kullanılır; bu süs olduğu için hatası kullanıcıya gösterilmez.
  */
-export function useFilmColor(path: string | null): string | null {
+export function useFilmLight(path: string | null): FilmLight | null {
   const { data } = useQuery({
-    queryKey: ['film-color', path],
-    queryFn: () => readFilmColor(path ?? ''),
+    queryKey: ['film-light', path],
+    queryFn: () => readFilmLight(path ?? ''),
     enabled: path !== null,
     staleTime: Infinity,
     retry: false,

@@ -4,7 +4,7 @@ import { tmdbImage } from '../../lib/tmdb-image';
 
 const CAST_LIMIT = 12;
 
-/** Dört puan da her zaman yerinde durur; olmayan puan gizlenmez, "yok" diye yazılır. */
+/** Altyazıdaki puanların ayrıntısı: oy sayıları burada. Olmayan puan gizlenmez, "yok" yazılır. */
 export function Scores({ title }: { title: TitleDetail }) {
   const external = title.externalRatings;
   const scores = [
@@ -21,25 +21,34 @@ export function Scores({ title }: { title: TitleDetail }) {
       label: 'Metacritic',
       value: external?.metacritic != null ? String(external.metacritic) : null,
     },
-    { label: 'TMDB', value: title.rating != null ? formatRating(title.rating) : null },
+    {
+      label: 'TMDB',
+      value: title.rating != null ? formatRating(title.rating) : null,
+      note: title.voteCount > 0 ? `${formatCount(title.voteCount)} oy` : null,
+    },
   ];
 
   return (
-    <dl className="grid grid-cols-2 gap-x-6 gap-y-5">
-      {scores.map(({ label, value, note }) => (
-        <div key={label}>
-          <dt className="text-sm text-light-dim">{label}</dt>
-          <dd className="mt-0.5">
-            {value ? (
-              <span className="font-display text-[2rem] leading-none">{value}</span>
-            ) : (
-              <span className="text-light-dim">Puan yok</span>
-            )}
-            {note && <span className="ml-2 text-sm text-light-dim">{note}</span>}
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <section aria-labelledby="puanlar">
+      <h2 id="puanlar" className="font-display text-[1.75rem] leading-tight">
+        Puanlar
+      </h2>
+      <dl className="mt-3 divide-y divide-line">
+        {scores.map(({ label, value, note }) => (
+          <div key={label} className="flex items-baseline justify-between gap-4 py-2">
+            <dt className="text-light-dim">{label}</dt>
+            <dd className="tabular-nums">
+              {note && <span className="mr-3 text-sm text-light-dim">{note}</span>}
+              {value ? (
+                <span className="font-bold">{value}</span>
+              ) : (
+                <span className="text-light-dim">Puan yok</span>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 
@@ -119,7 +128,7 @@ export function CastRow({ cast }: { cast: CastMember[] }) {
       <h2 id="oyuncular" className="font-display text-[1.75rem] leading-tight">
         Oyuncular
       </h2>
-      <ul className="no-scrollbar -mx-4 mt-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 sm:mx-0 sm:px-0 sm:gap-5">
+      <ul className="row-scroll -mx-4 mt-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 sm:mx-0 sm:px-0 sm:gap-5">
         {cast.slice(0, CAST_LIMIT).map((person) => (
           <li key={person.id} className="w-28 shrink-0 snap-start">
             <div className="aspect-[2/3] overflow-hidden bg-room-raised">
