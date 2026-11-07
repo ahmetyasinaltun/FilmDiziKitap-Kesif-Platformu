@@ -14,8 +14,8 @@ const HUE_BINS = 12;
 const MIN_SATURATION = 0.2;
 const MIN_LIGHTNESS = 0.12;
 const MAX_LIGHTNESS = 0.9;
-/** Koyu yazıyla (--color-film-ink) 4,5:1 kontrast için gereken bağıl parlaklık */
-const MIN_LUMINANCE = 0.2;
+/** Koyu yazıyla (--color-film-ink) en az 4,5:1 kontrast için gereken bağıl parlaklık (0,2022 + pay) */
+const MIN_LUMINANCE = 0.21;
 
 function rgbToHsl(r: number, g: number, b: number): Hsl {
   const [rn, gn, bn] = [r / 255, g / 255, b / 255];

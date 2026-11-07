@@ -5,6 +5,11 @@ import { luminanceOf, pickFilmColor, pickLightStrength, toButtonColor } from './
 const pixels = (rgb: [number, number, number], n: number) =>
   Array.from({ length: n }, () => [...rgb, 255]).flat();
 
+/** --color-film-ink (#17110a) bağıl parlaklığı */
+const INK_LUMINANCE = 0.00605;
+const contrastWithInk = (color: { h: number; s: number; l: number }) =>
+  (luminanceOf(toButtonColor(color)) + 0.05) / (INK_LUMINANCE + 0.05);
+
 describe('pickFilmColor', () => {
   it('griler arasından canlı rengi bulur', () => {
     const image = [...pixels([60, 60, 60], 500), ...pixels([200, 120, 30], 50)];
@@ -42,6 +47,6 @@ describe('toButtonColor', () => {
     ['koyu mor', { h: 280, s: 0.5, l: 0.2 }],
     ['koyu kırmızı', { h: 0, s: 0.7, l: 0.2 }],
   ])('%s, koyu yazı okunacak kadar açılır', (_name, color) => {
-    expect(luminanceOf(toButtonColor(color))).toBeGreaterThanOrEqual(0.2);
+    expect(contrastWithInk(color)).toBeGreaterThanOrEqual(4.5);
   });
 });

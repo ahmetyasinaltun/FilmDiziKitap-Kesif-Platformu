@@ -13,6 +13,8 @@
   --color-line: rgb(244 239 230 / 0.16);
   --color-film: #e8a53c;
   --color-film-ink: #17110a;
+  --color-subtitle: #fff;
+  --color-subtitle-edge: #000;
 
   --font-sans: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Gloock', ui-serif, Georgia, serif;
@@ -87,11 +89,11 @@
 
   /* Altyazı: her görselin üstünde okunabilsin diye dış hat ve yumuşak gölge birlikte. */
   .subtitle-text {
-    color: #fff;
+    color: var(--color-subtitle);
     text-shadow:
-      0 0 2px #000,
-      0 1px 3px #000,
-      0 2px 14px rgb(0 0 0 / 0.8);
+      0 0 2px var(--color-subtitle-edge),
+      0 1px 3px var(--color-subtitle-edge),
+      0 2px 14px color-mix(in srgb, var(--color-subtitle-edge) 80%, transparent);
   }
 
   .room-light-image {
