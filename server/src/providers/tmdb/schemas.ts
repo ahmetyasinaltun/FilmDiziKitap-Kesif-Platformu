@@ -235,6 +235,7 @@ export type TmdbSeasonDetail = z.output<typeof seasonDetailSchema>;
 const creditFields = {
   character: optionalText,
   job: optionalText,
+  department: optionalText,
   popularity: count,
 };
 

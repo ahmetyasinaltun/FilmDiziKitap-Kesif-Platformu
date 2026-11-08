@@ -132,16 +132,40 @@ export function toBookDetail(doc: OlSearchDoc, work: OlWork): BookCore {
   };
 }
 
+/**
+ * Yazar sayfasındaki eserler. Aynı yazarın birden çok kaydı olduğu için arama adla da yapılıyor;
+ * bu, adın geçtiği antolojileri ve ders kitaplarını da getiriyor (Emily Brontë aramasında
+ * 22 yazarlı bir Dracula derlemesi, 100 yazarlı bir edebiyat ders kitabı). Eser, ilk yazarı bu
+ * yazarsa ya da en fazla iki farklı yazarı varsa ve biri bu yazarsa listede kalır.
+ */
+export function isWorkBy(doc: OlSearchDoc, authorId: string, authorName: string): boolean {
+  const names = doc.author_name ?? [];
+  const keys = doc.author_key ?? [];
+  const name = normalizeForMatch(authorName);
+  const isThisAuthor = (index: number) =>
+    keys[index] === authorId || (name !== '' && normalizeForMatch(names[index] ?? '') === name);
+
+  const count = Math.max(names.length, keys.length);
+  if (count === 0) return false;
+  if (isThisAuthor(0)) return true;
+  const distinctAuthors = names.length > 0 ? new Set(names.map(normalizeForMatch)).size : count;
+  if (distinctAuthors > 2) return false;
+  return Array.from({ length: count }, (_, index) => index).some(isThisAuthor);
+}
+
 export function toAuthorDetail(author: OlAuthor, works: OlSearchDoc[]): AuthorDetail {
   const photo = author.photos?.find((id) => id > 0);
+  const id = olid(author.key);
   return {
     type: 'author',
-    id: olid(author.key),
+    id,
     name: author.name ?? '',
     bio: cleanDescription(author.bio),
     birthDate: author.birth_date,
     deathDate: author.death_date,
     photo: photo ? `https://covers.openlibrary.org/a/id/${photo}-M.jpg` : null,
-    works: dedupeBooks(works.map(toBookSummary)),
+    works: dedupeBooks(
+      works.filter((doc) => isWorkBy(doc, id, author.name ?? '')).map(toBookSummary),
+    ),
   };
 }

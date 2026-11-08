@@ -1,6 +1,9 @@
+import type { ReactNode } from 'react';
 import { BRAND_NAME, pageTitle } from '../lib/brand';
 
-const SOURCES = [
+const linkClass = 'underline underline-offset-4 hover:text-light';
+
+const SOURCES: { name: string; href: string; text: ReactNode }[] = [
   {
     name: 'JustWatch',
     href: 'https://www.justwatch.com/tr',
@@ -19,7 +22,21 @@ const SOURCES = [
   {
     name: 'Vikipedi',
     href: 'https://tr.wikipedia.org',
-    text: 'Türkçe kitap açıklamaları. Metinler CC BY-SA 4.0 lisanslıdır; her açıklamanın yanında maddesine bağlantı verilir.',
+    // Lisans, adıyla birlikte lisans metnine bağlantı da istiyor.
+    text: (
+      <>
+        Türkçe kitap açıklamaları. Metinler{' '}
+        <a
+          href="https://creativecommons.org/licenses/by-sa/4.0/deed.tr"
+          target="_blank"
+          rel="noreferrer"
+          className={linkClass}
+        >
+          CC BY-SA 4.0
+        </a>{' '}
+        lisanslıdır; her açıklamanın yanında maddesine bağlantı verilir.
+      </>
+    ),
   },
   {
     name: 'Wikidata',
@@ -32,8 +49,6 @@ const SOURCES = [
     text: 'Bazı kitaplarda Türkçe açıklama ve önizleme bağlantısı.',
   },
 ];
-
-const linkClass = 'underline underline-offset-4 hover:text-light';
 
 export function AboutPage() {
   return (

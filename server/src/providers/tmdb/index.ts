@@ -36,7 +36,7 @@ import {
 } from './schemas.js';
 
 /** Normalize biçim değişirse artırılır; eski önbellek kayıtları kendiliğinden devre dışı kalır. */
-const VERSION = 4;
+const VERSION = 5;
 const key = (...parts: (string | number)[]) => ['tmdb', `v${VERSION}`, ...parts].join(':');
 
 const HOUR = 60 * 60;

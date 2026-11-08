@@ -13,6 +13,7 @@ export type {
   Paginated,
   PersonCredit,
   PersonDetail,
+  PersonRole,
   PersonSummary,
   SearchResult,
   TvDetail,

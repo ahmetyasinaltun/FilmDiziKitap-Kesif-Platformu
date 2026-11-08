@@ -187,10 +187,19 @@ export interface SeasonDetail {
   episodes: Episode[];
 }
 
+export interface PersonRole {
+  /** Oyuncuda karakter adı ("Bruce Wayne"), ekipte TMDB görev kodu ("Director") */
+  name: string;
+  /**
+   * Ekipte TMDB departmanı ("Camera"), oyuncuda null. TMDB'de 900'den fazla görev var; arayüz
+   * çevirisini bilmediği görevde departmanın Türkçesini gösterir.
+   */
+  department: string | null;
+}
+
 export interface PersonCredit {
   content: ContentSummary;
-  /** Oyuncu ise karakter adları, ekipte ise görev kodları */
-  roles: string[];
+  roles: PersonRole[];
 }
 
 export interface PersonDetail {

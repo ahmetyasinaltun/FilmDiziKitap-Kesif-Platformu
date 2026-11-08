@@ -227,6 +227,7 @@ describe('toPersonDetail', () => {
               title: 'Başlangıç',
               release_date: '2010-07-15',
               job: 'Director',
+              department: 'Directing',
               vote_count: 40000,
             },
             {
@@ -235,6 +236,7 @@ describe('toPersonDetail', () => {
               title: 'Başlangıç',
               release_date: '2010-07-15',
               job: 'Writer',
+              department: 'Writing',
               vote_count: 40000,
             },
             {
@@ -243,6 +245,7 @@ describe('toPersonDetail', () => {
               title: 'Oppenheimer',
               release_date: '2023-07-19',
               job: 'Director',
+              department: 'Directing',
               vote_count: 10000,
             },
           ],
@@ -250,7 +253,44 @@ describe('toPersonDetail', () => {
       }),
     );
     expect(person.credits.map((c) => c.content.title)).toEqual(['Oppenheimer', 'Başlangıç']);
-    expect(person.credits[1]?.roles).toEqual(['Director', 'Writer']);
+    expect(person.credits[1]?.roles).toEqual([
+      { name: 'Director', department: 'Directing' },
+      { name: 'Writer', department: 'Writing' },
+    ]);
     expect(person.knownFor[0]?.title).toBe('Başlangıç');
+  });
+
+  it('oyuncu rolünde departman yok, ekip görevinde TMDB departmanı var', () => {
+    const person = toPersonDetail(
+      personDetailSchema.parse({
+        id: 1,
+        name: 'Kişi',
+        combined_credits: {
+          cast: [
+            {
+              media_type: 'movie',
+              id: 10,
+              title: 'Film',
+              release_date: '2001-01-01',
+              character: 'Bruce Wayne',
+            },
+          ],
+          crew: [
+            {
+              media_type: 'movie',
+              id: 10,
+              title: 'Film',
+              release_date: '2001-01-01',
+              job: 'Set Designer',
+              department: 'Art',
+            },
+          ],
+        },
+      }),
+    );
+    expect(person.credits[0]?.roles).toEqual([
+      { name: 'Bruce Wayne', department: null },
+      { name: 'Set Designer', department: 'Art' },
+    ]);
   });
 });

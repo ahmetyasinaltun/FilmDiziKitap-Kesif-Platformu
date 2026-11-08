@@ -5,10 +5,11 @@ import {
   coverUrl,
   dedupeBooks,
   normalizeForMatch,
+  toAuthorDetail,
   toBookDetail,
   toBookSummary,
 } from './mappers.js';
-import { searchDocSchema, workSchema } from './schemas.js';
+import { authorSchema, searchDocSchema, workSchema } from './schemas.js';
 
 const doc = (overrides: Record<string, unknown> = {}) =>
   searchDocSchema.parse({
@@ -159,5 +160,41 @@ describe('dedupeBooks (yazarsız kayıt)', () => {
       ),
     ];
     expect(dedupeBooks(books).map((book) => book.id)).toEqual(['OL1W', 'OL3W']);
+  });
+});
+
+describe('toAuthorDetail', () => {
+  // Gerçek "Emily Brontë" aramasından alınmış durumlar.
+  const author = authorSchema.parse({ key: '/authors/OL24529A', name: 'Emily Brontë' });
+  const work = (key: string, title: string, names: string[], keys: string[] = []) =>
+    doc({ key: `/works/${key}`, title, author_name: names, author_key: keys, editions: null });
+
+  it('yazarın adının geçtiği antolojileri ve ders kitaplarını eser saymaz', () => {
+    const works = [
+      work('OL1W', 'Wuthering Heights', ['Emily Brontë'], ['OL24529A']),
+      // Aynı yazarın başka bir kaydı, aksansız yazımla
+      work('OL2W', 'Gondal Poems', ['Emily Bronte'], ['OL999A']),
+      // İki yazarlı ortak kitap: yazar ikinci sırada
+      work('OL3W', 'Wuthering Heights / Agnes Grey', ['Anne Brontë', 'Emily Brontë']),
+      work('OL4W', 'The secret life of Laszlo, Count Dracula', [
+        'Roderick Anscombe',
+        'Bram Stoker',
+        'Emily Brontë',
+      ]),
+      // Editör iki kez yazılmış antoloji: üç farklı yazar
+      work('OL5W', 'Erotica', [
+        'Margaret Reynolds',
+        'Margaret Reynolds',
+        'Margaret Atwood',
+        'Emily Brontë',
+      ]),
+      work('OL6W', 'Jane Eyre', ['Charlotte Brontë']),
+    ];
+
+    expect(toAuthorDetail(author, works).works.map((book) => book.id)).toEqual([
+      'OL1W',
+      'OL2W',
+      'OL3W',
+    ]);
   });
 });

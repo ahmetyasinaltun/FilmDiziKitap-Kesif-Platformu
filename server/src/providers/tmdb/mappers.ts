@@ -8,6 +8,7 @@ import type {
   MovieDetail,
   PersonCredit,
   PersonDetail,
+  PersonRole,
   PersonSummary,
   SearchResult,
   SeasonDetail,
@@ -320,18 +321,20 @@ type RawCredit = NonNullable<TmdbPersonDetail['combined_credits']>['cast'][numbe
 const SELF_ROLE = /^(self|himself|herself|themselves)\b/i;
 
 export function toPersonDetail(raw: TmdbPersonDetail): PersonDetail {
-  const grouped = new Map<string, { raw: RawCredit; roles: Set<string> }>();
+  const grouped = new Map<string, { raw: RawCredit; roles: Map<string, PersonRole> }>();
 
-  const add = (credit: RawCredit, role: string | null) => {
+  const add = (credit: RawCredit, name: string | null, department: string | null) => {
     if (credit.genre_ids?.some((genre) => HIDDEN_CREDIT_GENRES.has(genre))) return;
-    if (credit.media_type === 'tv' && role && SELF_ROLE.test(role)) return;
+    if (credit.media_type === 'tv' && name && SELF_ROLE.test(name)) return;
     const key = `${credit.media_type}:${credit.id}`;
-    const entry = grouped.get(key) ?? { raw: credit, roles: new Set<string>() };
-    if (role) entry.roles.add(role);
+    const entry = grouped.get(key) ?? { raw: credit, roles: new Map<string, PersonRole>() };
+    if (name) entry.roles.set(`${department ?? ''}:${name}`, { name, department });
     grouped.set(key, entry);
   };
-  for (const credit of raw.combined_credits?.cast ?? []) add(credit, credit.character);
-  for (const credit of raw.combined_credits?.crew ?? []) add(credit, credit.job);
+  for (const credit of raw.combined_credits?.cast ?? []) add(credit, credit.character, null);
+  for (const credit of raw.combined_credits?.crew ?? []) {
+    add(credit, credit.job, credit.department ?? 'Crew');
+  }
 
   const entries = [...grouped.values()];
   const summaryOf = (credit: RawCredit) =>
@@ -341,7 +344,7 @@ export function toPersonDetail(raw: TmdbPersonDetail): PersonDetail {
 
   const credits: PersonCredit[] = entries
     .sort((a, b) => dateOf(b.raw).localeCompare(dateOf(a.raw)))
-    .map((entry) => ({ content: summaryOf(entry.raw), roles: [...entry.roles] }));
+    .map((entry) => ({ content: summaryOf(entry.raw), roles: [...entry.roles.values()] }));
 
   const knownFor = [...entries]
     .sort((a, b) => b.raw.vote_count - a.raw.vote_count)

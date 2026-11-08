@@ -23,7 +23,7 @@ import {
   workSchema,
 } from './schemas.js';
 
-const VERSION = 2;
+const VERSION = 3;
 const key = (...parts: (string | number)[]) => ['ol', `v${VERSION}`, ...parts].join(':');
 
 const HOUR = 60 * 60;
@@ -110,12 +110,13 @@ export function getAuthor(id: string): Promise<AuthorDetail> {
       author = await olGet(`${author.location}.json`, authorSchema);
     }
     // Open Library'de aynı yazarın birden çok kaydı olabiliyor (Orwell'in bir kaydında 1,
-    // adıyla aramada 655 eser). Kimlik ya da adla eşleşen eserler birlikte alınır.
+    // adıyla aramada 655 eser). Kimlik ya da adla eşleşen eserler birlikte alınır; adın geçtiği
+    // antolojiler toAuthorDetail içinde ayıklandığı için biraz fazla istenir.
     const byName = author.name ? ` OR author:"${author.name.replaceAll('"', '')}"` : '';
     const works = await search({
       q: `author_key:${olid(author.key)}${byName}`,
       sort: 'editions',
-      limit: '30',
+      limit: '40',
     });
     return toAuthorDetail(author, works.docs);
   });

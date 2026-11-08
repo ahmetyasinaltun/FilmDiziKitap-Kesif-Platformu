@@ -2,22 +2,8 @@ import { Link, useSearchParams } from 'react-router';
 import { pillLink, posterGrid, quietButton } from '../../components/button-styles';
 import { PosterCard } from '../../components/PosterRow';
 import { QueryError } from '../../components/QueryError';
-import { ApiError } from '../../lib/api';
-import type { LibraryItem, LibraryStatus, MediaType } from '../../lib/content';
-import { useLibraryList } from './use-library';
-
-const TYPE_FILTERS: { param: string | null; label: string; value?: MediaType }[] = [
-  { param: null, label: 'Tümü' },
-  { param: 'film', label: 'Film', value: 'movie' },
-  { param: 'dizi', label: 'Dizi', value: 'tv' },
-  { param: 'kitap', label: 'Kitap', value: 'book' },
-];
-
-const STATUS_FILTERS: { param: string | null; label: string; value?: LibraryStatus }[] = [
-  { param: null, label: 'Hepsi' },
-  { param: 'sirada', label: 'Sırada', value: 'planned' },
-  { param: 'bitti', label: 'Bitti', value: 'completed' },
-];
+import type { LibraryItem } from '../../lib/content';
+import { STATUS_FILTERS, TYPE_FILTERS, useShelfList } from './shelf-filters';
 
 function itemNote(item: LibraryItem, own: boolean): string {
   if (item.status === 'planned') return 'Sırada';
@@ -66,12 +52,7 @@ function FilterRow({
 }
 
 function LibraryList({ username, own }: { username: string; own: boolean }) {
-  const [params] = useSearchParams();
-  const type = TYPE_FILTERS.find((filter) => filter.param === params.get('tur'))?.value;
-  const status = STATUS_FILTERS.find((filter) => filter.param === params.get('durum'))?.value;
-  const filtered = type !== undefined || status !== undefined;
-
-  const list = useLibraryList(username, { type, status });
+  const { list, filtered } = useShelfList(username);
   const items = list.data?.pages.flatMap((page) => page.results) ?? [];
   const total = list.data?.pages[0]?.totalResults ?? 0;
 
@@ -88,10 +69,8 @@ function LibraryList({ username, own }: { username: string; own: boolean }) {
     );
   }
 
+  // Kullanıcı yoksa (404) profil sayfası rafın yerine "bulunamadı" gösterir.
   if (list.isError) {
-    if (list.error instanceof ApiError && list.error.status === 404) {
-      return <p className="py-8 text-lg">Böyle bir kullanıcı yok.</p>;
-    }
     return <QueryError message={list.error.message} onRetry={() => void list.refetch()} />;
   }
 

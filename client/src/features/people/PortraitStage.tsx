@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { ExpandableText } from '../../components/ExpandableText';
 import { QueryError } from '../../components/QueryError';
@@ -11,13 +10,23 @@ interface PortraitStageProps {
   image: string | null;
   meta: string;
   text: string | null;
-  /** Metnin altında kaynak satırı */
-  source: ReactNode;
+  /** Metnin dili Türkçe değilse (Open Library biyografileri İngilizce): ekran okuyucu doğru okusun. */
+  lang?: string;
+  /** Metnin altındaki kaynak satırı; kaydın kaynaktaki sayfasına bağlanır. */
+  source: { name: string; href: string };
   emptyText: string;
 }
 
 /** Kişi ve yazar sayfalarının ortak sahnesi: ışık portreden yayılır, yanında ad ve biyografi. */
-export function PortraitStage({ name, image, meta, text, source, emptyText }: PortraitStageProps) {
+export function PortraitStage({
+  name,
+  image,
+  meta,
+  text,
+  lang,
+  source,
+  emptyText,
+}: PortraitStageProps) {
   useRoomLight(image);
 
   return (
@@ -32,11 +41,21 @@ export function PortraitStage({ name, image, meta, text, source, emptyText }: Po
             {meta && <p className="mt-2 text-light-dim sm:text-lg">{meta}</p>}
             <div className="mt-8">
               {text ? (
-                <ExpandableText text={text} />
+                <ExpandableText text={text} lang={lang} />
               ) : (
                 <p className="text-light-dim">{emptyText}</p>
               )}
-              <p className="mt-2 text-sm text-light-dim">{source}</p>
+              <p className="mt-2 text-sm text-light-dim">
+                Kaynak:{' '}
+                <a
+                  href={source.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-4 hover:text-light"
+                >
+                  {source.name}
+                </a>
+              </p>
             </div>
           </div>
         </div>

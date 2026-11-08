@@ -31,19 +31,6 @@ function AuthorContent({ id }: { id: string }) {
   }
 
   const data = author.data;
-  const source = (
-    <>
-      Kaynak:{' '}
-      <a
-        href={`https://openlibrary.org/authors/${encodeURIComponent(data.id)}`}
-        target="_blank"
-        rel="noreferrer"
-        className="underline underline-offset-4 hover:text-light"
-      >
-        Open Library
-      </a>
-    </>
-  );
 
   return (
     <>
@@ -53,8 +40,12 @@ function AuthorContent({ id }: { id: string }) {
         image={data.photo}
         meta={lifeYears(data)}
         text={data.bio}
+        lang="en"
         emptyText="Bu yazar için biyografi bulunamadı."
-        source={source}
+        source={{
+          name: 'Open Library',
+          href: `https://openlibrary.org/authors/${encodeURIComponent(data.id)}`,
+        }}
       />
       {data.works.length > 0 && (
         <section aria-labelledby="eserleri" className="perde-width page-gutter mt-14">
