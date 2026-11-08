@@ -138,7 +138,7 @@ export function toBookDetail(doc: OlSearchDoc, work: OlWork): BookCore {
  * 22 yazarlı bir Dracula derlemesi, 100 yazarlı bir edebiyat ders kitabı). Eser, ilk yazarı bu
  * yazarsa ya da en fazla iki farklı yazarı varsa ve biri bu yazarsa listede kalır.
  */
-export function isWorkBy(doc: OlSearchDoc, authorId: string, authorName: string): boolean {
+function isWorkBy(doc: OlSearchDoc, authorId: string, authorName: string): boolean {
   const names = doc.author_name ?? [];
   const keys = doc.author_key ?? [];
   const name = normalizeForMatch(authorName);

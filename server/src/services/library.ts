@@ -6,7 +6,7 @@ import { prisma } from '../lib/prisma.js';
 import { contentWhere, ensureContent, toContentCard } from './content-records.js';
 
 /** 2, 3, 4 ve 6 sütunlu ızgaraya tam bölünür. */
-export const LIBRARY_PAGE_SIZE = 24;
+const LIBRARY_PAGE_SIZE = 24;
 
 const toDbStatus = (status: LibraryStatus) => status.toUpperCase() as DbStatus;
 const fromDbStatus = (status: DbStatus) => status.toLowerCase() as LibraryStatus;
@@ -38,7 +38,7 @@ export interface EntryInput {
  * - "izleyeceğim"e dönen içeriğin puanı ve bitiş tarihi silinir (izlenmemiş bir şeyin puanı olmaz)
  * - "izledim"e geçişte bitiş tarihi yazılır; zaten izlenmişse tarih ve puan korunur
  */
-export function nextEntryState(existing: EntryRow | null, input: EntryInput, now: Date) {
+function nextEntryState(existing: EntryRow | null, input: EntryInput, now: Date) {
   const status = toDbStatus(input.status);
   if (status === 'PLANNED') return { status, rating: null, finishedAt: null };
   return {

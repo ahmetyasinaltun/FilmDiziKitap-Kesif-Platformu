@@ -12,7 +12,7 @@ import {
 import { getSession, loginUser, registerUser } from '../services/auth.js';
 
 /** Profil adresinde kullanılır (/u/{username}): sadece URL dostu karakterler. */
-export const usernameSchema = z
+const usernameSchema = z
   .string()
   .trim()
   .toLowerCase()
@@ -21,7 +21,7 @@ export const usernameSchema = z
     '3-20 karakter; sadece harf (a-z), rakam ve alt çizgi kullanılabilir.',
   );
 
-export const passwordSchema = z
+const passwordSchema = z
   .string()
   .min(8, 'Şifre en az 8 karakter olmalı.')
   .refine((password) => !isPasswordTooLong(password), 'Şifre çok uzun.');
