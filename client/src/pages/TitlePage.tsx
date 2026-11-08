@@ -7,7 +7,7 @@ import { CastRow, Scores, WhereToWatch } from '../features/titles/TitleFacts';
 import { useTitle } from '../features/titles/use-title';
 import { ApiError } from '../lib/api';
 import { pageTitle } from '../lib/brand';
-import type { TitleDetail, TitleSummary, TitleType } from '../lib/content';
+import { personPath, type TitleDetail, type TitleSummary, type TitleType } from '../lib/content';
 
 const SIMILAR_LIMIT = 6;
 import { tmdbImage, tmdbSrcSet } from '../lib/tmdb-image';
@@ -28,7 +28,19 @@ function Credits({ title }: { title: TitleDetail }) {
         .map(({ label, people }) => (
           <div key={label} className="flex gap-3">
             <dt className="w-20 shrink-0 text-light-dim">{label}</dt>
-            <dd>{people.map((person) => person.name).join(', ')}</dd>
+            <dd>
+              {people.map((person, index) => (
+                <span key={person.id}>
+                  {index > 0 && ', '}
+                  <Link
+                    to={personPath(person.id)}
+                    className="hover:underline hover:underline-offset-4"
+                  >
+                    {person.name}
+                  </Link>
+                </span>
+              ))}
+            </dd>
           </div>
         ))}
     </dl>

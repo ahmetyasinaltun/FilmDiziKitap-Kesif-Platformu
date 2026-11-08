@@ -1,35 +1,13 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { filmButton, quietButton } from '../../components/button-styles';
-import { CoverFrame } from '../../components/PosterRow';
+import { ExpandableText } from '../../components/ExpandableText';
 import { authorPath, contentPath, type BookDetail, type ContentSummary } from '../../lib/content';
 import { LibraryControl, LibraryRating } from '../library/LibraryControl';
-import { LightImage } from '../perde/LightImage';
-import { RoomLight } from '../perde/Perde';
+import { LitCover } from '../perde/LitCover';
 import { useRoomLight } from '../perde/use-room-light';
 import { vitrinTitleSize } from '../titles/title-size';
 import { bookMeta } from './book-meta';
-
-/** Kapak geniş perdeye yayılırsa bulanıklaşır; kitapta ışık kaynağı perde değil kapağın kendisidir. */
-function BookCover({ title, poster }: { title: string; poster: string | null }) {
-  return (
-    <div className="relative mx-auto w-44 self-start sm:w-52 lg:sticky lg:top-6 lg:w-full">
-      <div aria-hidden="true" className="perde-floor">
-        <LightImage path={poster} variant="light" className="room-light-image" />
-      </div>
-      <CoverFrame title={title} className="perde-screen">
-        <LightImage
-          path={poster}
-          variant="cover"
-          className="absolute inset-0 size-full object-cover"
-        />
-      </CoverFrame>
-    </div>
-  );
-}
-
-/** Bundan uzun metin kısaltılır: telefonda künyeye ulaşmak için çok kaydırmak gerekmesin. */
-const LONG_TEXT = 700;
 
 function BookText({
   detail,
@@ -41,7 +19,6 @@ function BookText({
   /** Vitrinde kısa ve sabit yükseklikte; kitap sayfasında tamamı */
   preview: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const boxClass = preview ? 'min-h-[9.25rem]' : '';
 
   if (status === 'pending') {
@@ -67,29 +44,17 @@ function BookText({
   }
 
   const english = description.source === 'Open Library';
-  const long = !preview && description.text.length > LONG_TEXT;
-  // Vitrinde paragraflar tek akışa iner: satır sonu kısaltmayla birleşip dört nokta üretmesin.
-  const textClass = preview
-    ? 'line-clamp-4'
-    : `whitespace-pre-line ${long && !expanded ? 'line-clamp-[9]' : ''}`;
+  const lang = english ? 'en' : undefined;
 
   return (
     <div className={boxClass}>
-      <p
-        lang={english ? 'en' : undefined}
-        className={`max-w-[65ch] text-lg leading-relaxed ${textClass}`}
-      >
-        {description.text}
-      </p>
-      {long && (
-        <button
-          type="button"
-          aria-expanded={expanded}
-          onClick={() => setExpanded(!expanded)}
-          className="mt-2 flex h-11 cursor-pointer items-center underline underline-offset-4 hover:no-underline"
-        >
-          {expanded ? 'Daha az göster' : 'Devamını oku'}
-        </button>
+      {preview ? (
+        // Vitrinde paragraflar tek akışa iner: satır sonu kısaltmayla birleşip dört nokta üretmesin.
+        <p lang={lang} className="line-clamp-4 max-w-[65ch] text-lg leading-relaxed">
+          {description.text}
+        </p>
+      ) : (
+        <ExpandableText text={description.text} lang={lang} />
       )}
       <p className="mt-2 text-sm text-light-dim">
         {english && 'Türkçe açıklama bulunamadı. '}
@@ -135,7 +100,11 @@ interface BookStageProps {
   children?: ReactNode;
 }
 
-/** Kapak, başlık, açıklama ve eylemler: kitap bölümü vitrini ile kitap sayfasının ortak sahnesi. */
+/**
+ * Kapak ışığı kapağın birkaç katı geniş: bölüm yatayda kırpar, yoksa telefonda sayfa yana taşar.
+ * `clip` yalnızca yatay eksende kırpar; kapağın altındaki yansıma görünür kalır.
+ *
+ * Kapak, başlık, açıklama ve eylemler: kitap bölümü vitrini ile kitap sayfasının ortak sahnesi. */
 export function BookStage({
   summary,
   detail,
@@ -150,12 +119,13 @@ export function BookStage({
   const preview = detail?.links.googleBooks;
 
   return (
-    <section aria-label={linkToDetail ? 'Öne çıkan kitap' : undefined} className="relative">
-      {summary.poster && <RoomLight path={summary.poster} />}
-
+    <section
+      aria-label={linkToDetail ? 'Öne çıkan kitap' : undefined}
+      className="relative overflow-x-clip"
+    >
       <div className="perde-width relative pt-2">
         <div className="page-gutter grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-14">
-          <BookCover title={summary.title} poster={summary.poster} />
+          <LitCover title={summary.title} image={summary.poster} />
 
           <div className="min-w-0 lg:pt-2">
             {linkToDetail ? (

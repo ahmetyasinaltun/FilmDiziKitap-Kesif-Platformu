@@ -11,6 +11,7 @@ import {
   type SearchResult,
 } from '../../lib/content';
 import { formatCount, formatRating } from '../../lib/format';
+import { departmentLabel } from '../../lib/labels';
 import { tmdbImage, tmdbSrcSet } from '../../lib/tmdb-image';
 import { useTrending } from '../discover/use-discover';
 import { RoomLight } from '../perde/Perde';
@@ -27,21 +28,11 @@ const PREVIEW_SIZE = 6;
 const TITLES_PREVIEW_SIZE = 12;
 const SUGGESTION_SIZE = 6;
 
-const DEPARTMENTS: Record<string, string> = {
-  Acting: 'Oyuncu',
-  Directing: 'Yönetmen',
-  Writing: 'Senarist',
-  Production: 'Yapımcı',
-  Sound: 'Müzik',
-  Camera: 'Görüntü yönetmeni',
-  Editing: 'Kurgu',
-};
-
 const isPerson = (item: SearchResult): item is PersonSummary => item.type === 'person';
 const isContent = (item: SearchResult): item is ContentSummary => item.type !== 'person';
 
 function PersonCard({ person }: { person: PersonSummary }) {
-  const department = person.department ? DEPARTMENTS[person.department] : undefined;
+  const department = departmentLabel(person.department);
 
   return (
     <Link to={personPath(person.id)} className="group block">

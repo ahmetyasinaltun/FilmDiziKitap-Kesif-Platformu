@@ -15,6 +15,15 @@ function imageProps(path: string, variant: Variant) {
   if (variant === 'light') {
     return { src: lightImage(path), crossOrigin: 'anonymous' as const };
   }
+  if (variant === 'cover' && path.startsWith('/')) {
+    // TMDB kişi fotoğrafı
+    return {
+      src: tmdbImage(path, 'w500'),
+      srcSet: tmdbSrcSet(path, ['w342', 'w500']),
+      sizes: '(min-width: 64rem) 20rem, 13rem',
+      fetchPriority: 'high' as const,
+    };
+  }
   if (variant === 'cover') {
     return {
       src: largeCover(path),

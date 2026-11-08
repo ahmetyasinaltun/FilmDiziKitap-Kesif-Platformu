@@ -1,4 +1,11 @@
-import type { CastMember, TitleDetail, WatchProvider, WatchProviders } from '../../lib/content';
+import { Link } from 'react-router';
+import {
+  personPath,
+  type CastMember,
+  type TitleDetail,
+  type WatchProvider,
+  type WatchProviders,
+} from '../../lib/content';
 import { formatCount, formatRating } from '../../lib/format';
 import { tmdbImage } from '../../lib/tmdb-image';
 
@@ -131,21 +138,23 @@ export function CastRow({ cast }: { cast: CastMember[] }) {
       <ul className="row-scroll -mx-4 mt-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 sm:mx-0 sm:px-0 sm:gap-5">
         {cast.slice(0, CAST_LIMIT).map((person) => (
           <li key={person.id} className="w-28 shrink-0 snap-start">
-            <div className="aspect-[2/3] overflow-hidden bg-room-raised">
-              {person.profile && (
-                <img
-                  src={tmdbImage(person.profile, 'w185')}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  className="size-full object-cover"
-                />
+            <Link to={personPath(person.id)} className="group block">
+              <div className="aspect-[2/3] overflow-hidden bg-room-raised">
+                {person.profile && (
+                  <img
+                    src={tmdbImage(person.profile, 'w185')}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="size-full object-cover brightness-90 transition-[filter] duration-200 group-hover:brightness-110"
+                  />
+                )}
+              </div>
+              <p className="mt-2 text-sm font-medium leading-snug">{person.name}</p>
+              {person.character && (
+                <p className="text-sm leading-snug text-light-dim">{person.character}</p>
               )}
-            </div>
-            <p className="mt-2 text-sm font-medium leading-snug">{person.name}</p>
-            {person.character && (
-              <p className="text-sm leading-snug text-light-dim">{person.character}</p>
-            )}
+            </Link>
           </li>
         ))}
       </ul>

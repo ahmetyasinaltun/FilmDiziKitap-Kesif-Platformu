@@ -97,12 +97,15 @@ export function AppLayout() {
       </main>
 
       <footer className="mt-24 border-t border-line">
-        <div className="perde-width page-gutter py-8 text-sm leading-relaxed text-light-dim">
+        <div className="perde-width page-gutter flex flex-col gap-4 py-8 text-sm leading-relaxed text-light-dim sm:flex-row sm:justify-between">
           <p className="max-w-[65ch]">
             Film ve dizi verileri TMDB'den, dış puanlar OMDb'den, nerede izlenir verisi
             JustWatch'tan, kitap verileri Open Library'den gelir. Bu ürün TMDB API'sini kullanır
             ancak TMDB tarafından onaylanmamış veya sertifikalandırılmamıştır.
           </p>
+          <Link to="/hakkinda" className="shrink-0 underline underline-offset-4 hover:text-light">
+            Hakkında ve kaynaklar
+          </Link>
         </div>
       </footer>
 

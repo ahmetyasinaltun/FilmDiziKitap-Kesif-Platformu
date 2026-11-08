@@ -3,6 +3,7 @@
  * ama iki taraf aynı tanımı kullandığı için API biçimi değişince tip hatası burada görünür.
  */
 export type {
+  AuthorDetail,
   BookDetail,
   CastMember,
   ContentSummary,
@@ -10,6 +11,8 @@ export type {
   MediaType,
   MovieDetail,
   Paginated,
+  PersonCredit,
+  PersonDetail,
   PersonSummary,
   SearchResult,
   TvDetail,
