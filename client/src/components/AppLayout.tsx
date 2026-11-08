@@ -92,7 +92,9 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main id="icerik">
+      {/* En az bir ekran boyu: veri yüklenirken alt bilgi ilk ekranda görünüp sonra aşağı itilmesin
+          (yerleşim kayması; detay sayfalarında CLS 0,26'ydı). */}
+      <main id="icerik" className="min-h-svh">
         <Outlet />
       </main>
 
@@ -103,7 +105,10 @@ export function AppLayout() {
             JustWatch'tan, kitap verileri Open Library'den gelir. Bu ürün TMDB API'sini kullanır
             ancak TMDB tarafından onaylanmamış veya sertifikalandırılmamıştır.
           </p>
-          <Link to="/hakkinda" className="shrink-0 underline underline-offset-4 hover:text-light">
+          <Link
+            to="/hakkinda"
+            className="inline-flex min-h-11 shrink-0 items-center self-start underline underline-offset-4 hover:text-light sm:-mt-2.5"
+          >
             Hakkında ve kaynaklar
           </Link>
         </div>

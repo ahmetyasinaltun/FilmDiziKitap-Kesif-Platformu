@@ -105,10 +105,8 @@ export function Stage({
   // Başka yapıma geçilince fragman kendiliğinden kapanır.
   const [trailerOf, setTrailerOf] = useState<string | null>(null);
   const trailerButton = useRef<HTMLButtonElement>(null);
-  const closeTrailer = useCallback(() => {
-    setTrailerOf(null);
-    trailerButton.current?.focus();
-  }, []);
+  // Odak fragman düğmesine Perde içinde döner: sayfa erişilebilir hale geldikten sonra.
+  const closeTrailer = useCallback(() => setTrailerOf(null), []);
   const trailerKey = detail?.trailer?.key ?? null;
   const playing = trailerOf === summary.id ? trailerKey : null;
 
@@ -125,6 +123,7 @@ export function Stage({
           title={summary.title}
           playingTrailer={playing}
           onCloseTrailer={closeTrailer}
+          returnFocus={trailerButton}
         >
           <DecisionSubtitle
             detail={detail}
@@ -187,13 +186,29 @@ export function Stage({
   );
 }
 
+const pulse = 'animate-pulse bg-room-raised motion-reduce:animate-none';
+
+/**
+ * Sahneyle aynı yuvalar: perde, başlık yuvası, künye ve düğme satırı. Eksik bir yuva, veri
+ * gelince altındaki her şeyi aşağı iter; ana sayfada bu 250 piksellik bir kayma demekti.
+ */
 export function StageSkeleton({ children }: { children?: ReactNode }) {
   return (
     <div aria-busy="true" aria-label="Yükleniyor" className="perde-width">
-      <div className="aspect-[16/10] animate-pulse bg-room-raised motion-reduce:animate-none sm:aspect-[2.39/1]" />
-      <div className="page-gutter mt-6">
-        <div className="h-12 w-2/3 max-w-96 animate-pulse bg-room-raised motion-reduce:animate-none" />
-        <div className="mt-3 h-5 w-1/2 max-w-72 animate-pulse bg-room-raised motion-reduce:animate-none" />
+      <div className={`aspect-[16/10] sm:aspect-[2.39/1] ${pulse}`} />
+      <div className="page-gutter mt-5 flex flex-col gap-5 sm:mt-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 lg:flex-1">
+          <div className="flex h-14 items-end sm:h-[4.5rem] lg:h-[4.875rem]">
+            <div className={`h-10 w-2/3 max-w-96 sm:h-12 ${pulse}`} />
+          </div>
+          <div className="mt-2 flex h-6 items-center sm:h-7">
+            <div className={`h-4 w-1/2 max-w-72 ${pulse}`} />
+          </div>
+        </div>
+        <div className="flex shrink-0 gap-3 lg:pt-3">
+          <div className={`h-12 w-40 rounded-full sm:h-[3.375rem] sm:w-48 ${pulse}`} />
+          <div className={`h-12 w-36 rounded-full sm:h-[3.375rem] sm:w-44 ${pulse}`} />
+        </div>
       </div>
       {children}
     </div>

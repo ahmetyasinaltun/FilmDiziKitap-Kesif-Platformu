@@ -184,6 +184,7 @@ function AllResults({ q }: { q: string }) {
   }
 
   const tab = (id: SearchTab['id']) => SEARCH_TABS.find((item) => item.id === id);
+  const showBooks = !titles.isPending;
 
   return (
     <div
@@ -208,18 +209,20 @@ function AllResults({ q }: { q: string }) {
         </ResultSection>
       )}
 
-      {/* Open Library yavaş kalabilir: film sonuçları onu beklemez, kitaplar sonradan gelir. */}
-      {books.isPending && (
+      {/* Open Library yavaş kalabilir: film sonuçları onu beklemez, kitaplar sonradan gelir.
+          Kitap bölümü film sonuçlarından önce görünmez: ilk ekranda dururken film sonuçları
+          gelince aşağı itilirdi (yerleşim kayması). */}
+      {showBooks && books.isPending && (
         <ResultSection title="Kitaplar">
           <GridSkeleton />
         </ResultSection>
       )}
-      {books.isError && (
+      {showBooks && books.isError && (
         <ResultSection title="Kitaplar">
           <QueryError message={books.error.message} onRetry={() => void books.refetch()} />
         </ResultSection>
       )}
-      {bookItems.length > 0 && (
+      {showBooks && bookItems.length > 0 && (
         <ResultSection title="Kitaplar" tab={tab('book')}>
           <ResultGrid items={bookItems.slice(0, PREVIEW_SIZE)} />
         </ResultSection>

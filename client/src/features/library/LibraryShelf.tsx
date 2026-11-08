@@ -4,6 +4,7 @@ import { PosterCard } from '../../components/PosterRow';
 import { QueryError } from '../../components/QueryError';
 import type { LibraryItem } from '../../lib/content';
 import { STATUS_FILTERS, TYPE_FILTERS, useShelfList } from './shelf-filters';
+import { revealFocused } from '../../lib/reveal-focused';
 
 function itemNote(item: LibraryItem, own: boolean): string {
   if (item.status === 'planned') return 'Sırada';
@@ -25,7 +26,7 @@ function FilterRow({
 
   return (
     <nav aria-label={label}>
-      <ul className="row-scroll flex gap-1 overflow-x-auto">
+      <ul onFocus={revealFocused} className="row-scroll -m-1.5 flex gap-1 overflow-x-auto p-1.5">
         {options.map((option) => {
           const next = new URLSearchParams(params);
           if (option.param) next.set(name, option.param);
@@ -100,6 +101,8 @@ function LibraryList({ username, own }: { username: string; own: boolean }) {
       <p role="status" className="mb-4 text-light-dim">
         {total} kayıt
       </p>
+      {/* Kart adları h3: sayfa yapısı h1 → h2 → h3 kalsın. */}
+      <h2 className="sr-only">Kayıtlar</h2>
       <ul className={posterGrid}>
         {items.map((item) => (
           <li key={`${item.content.type}-${item.content.id}`}>

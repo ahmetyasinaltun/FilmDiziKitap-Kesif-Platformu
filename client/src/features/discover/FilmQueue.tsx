@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { CoverFrame } from '../../components/PosterRow';
 import { contentPath, type ContentSummary } from '../../lib/content';
 import { posterSources } from '../../lib/tmdb-image';
+import { revealFocused } from '../../lib/reveal-focused';
 
 /** Fare sıranın üzerinden hızla geçerken her afişte ışık değişmesin. */
 const HOVER_INTENT_MS = 90;
@@ -30,7 +31,8 @@ export function FilmQueue({ items, label, selectedId, onSelect }: FilmQueueProps
   return (
     <ul
       aria-label={label}
-      className="row-scroll queue-bleed mt-5 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 py-2 sm:scroll-px-1.5 sm:gap-5 sm:px-1.5"
+      onFocus={revealFocused}
+      className="row-scroll queue-bleed mt-5 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 py-2 sm:scroll-px-2 sm:gap-5 sm:px-1.5"
     >
       {items.map((item) => {
         const active = item.id === selectedId;
@@ -80,5 +82,22 @@ export function FilmQueue({ items, label, selectedId, onSelect }: FilmQueueProps
         );
       })}
     </ul>
+  );
+}
+
+/** Sıranın yükleniyor hali: aynı boşluklar ve afiş boyu, veri gelince sahne kaymasın. */
+export function QueueSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      className="queue-bleed mt-5 flex gap-3 overflow-hidden px-4 py-2 sm:gap-5 sm:px-1.5"
+    >
+      {Array.from({ length: 10 }, (_, index) => (
+        <div
+          key={index}
+          className="aspect-[2/3] w-24 shrink-0 animate-pulse bg-room-raised motion-reduce:animate-none sm:w-[7.375rem]"
+        />
+      ))}
+    </div>
   );
 }

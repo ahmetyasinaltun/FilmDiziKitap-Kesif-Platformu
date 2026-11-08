@@ -144,7 +144,9 @@ export function BookStage({
               </h1>
             )}
 
-            <p className="mt-2 truncate text-lg sm:text-xl">
+            {/* Vitrinde tek satır (sabit yuva); kitap sayfasında sarar: kırpan kutu yazar
+                bağlantılarının odak halkasını da keserdi. */}
+            <p className={`mt-2 text-lg sm:text-xl ${linkToDetail ? 'truncate' : ''}`}>
               <Authors summary={summary} detail={linkToDetail ? undefined : detail} />
             </p>
 
@@ -189,16 +191,45 @@ export function BookStage({
   );
 }
 
-export function BookStageSkeleton() {
+const pulse = 'animate-pulse bg-room-raised motion-reduce:animate-none';
+
+/**
+ * Kitap sahnesiyle aynı yuvalar: kapak, başlık, yazar, künye, düğme ve açıklama. Vitrinde başlık
+ * ve açıklama sabit yükseklikte olduğu için iskelet de aynı yüksekliği tutar; eksik yuvalar
+ * telefonda sırayı 470 piksel aşağı itiyordu.
+ */
+export function BookStageSkeleton({
+  vitrin = false,
+  children,
+}: {
+  vitrin?: boolean;
+  children?: ReactNode;
+}) {
   return (
     <div aria-busy="true" aria-label="Yükleniyor" className="perde-width pt-2">
       <div className="page-gutter grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-14">
-        <div className="mx-auto aspect-[2/3] w-44 animate-pulse bg-room-raised motion-reduce:animate-none sm:w-52 lg:w-full" />
-        <div className="space-y-3 lg:pt-6">
-          <div className="h-12 w-2/3 max-w-96 animate-pulse bg-room-raised motion-reduce:animate-none" />
-          <div className="h-5 w-1/2 max-w-72 animate-pulse bg-room-raised motion-reduce:animate-none" />
+        <div className={`mx-auto aspect-[2/3] w-44 self-start sm:w-52 lg:w-full ${pulse}`} />
+        <div className="min-w-0 lg:pt-2">
+          <div
+            className={`flex items-end ${vitrin ? 'h-14 sm:h-[4.5rem] lg:h-[4.875rem]' : 'h-11 sm:h-[3.75rem] lg:h-[4.5rem]'}`}
+          >
+            <div className={`h-10 w-2/3 max-w-96 sm:h-12 ${pulse}`} />
+          </div>
+          <div className="mt-2 flex h-7 items-center">
+            <div className={`h-5 w-1/3 max-w-60 ${pulse}`} />
+          </div>
+          <div className="mt-1 flex h-6 items-center sm:h-7">
+            <div className={`h-4 w-1/2 max-w-72 ${pulse}`} />
+          </div>
+          <div className={`mt-5 h-12 w-40 rounded-full sm:h-[3.375rem] ${pulse}`} />
+          <div className={`mt-8 space-y-3 pt-1 ${vitrin ? 'min-h-[9.25rem]' : ''}`}>
+            {['w-full', 'w-full', 'w-11/12', 'w-2/3'].map((width, index) => (
+              <div key={index} className={`h-4 ${width} ${pulse}`} />
+            ))}
+          </div>
         </div>
       </div>
+      {children}
     </div>
   );
 }

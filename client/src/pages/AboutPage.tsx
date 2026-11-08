@@ -57,8 +57,9 @@ export function AboutPage() {
       <div className="max-w-[65ch]">
         <h1 className="font-display text-[2.5rem] leading-tight sm:text-[3.5rem]">Hakkında</h1>
         <p className="mt-4 text-lg leading-relaxed">
-          {BRAND_NAME}, film, dizi ve kitapları tek yerde bulup izleyip izlememeye ya da okuyup
-          okumamaya hızlıca karar vermek için yapılmış, ticari olmayan bir portfolyo projesidir.
+          <span translate="no">{BRAND_NAME}</span>, film, dizi ve kitapları tek yerde bulup izleyip
+          izlememeye ya da okuyup okumamaya hızlıca karar vermek için yapılmış, ticari olmayan bir
+          portfolyo projesidir.
         </p>
 
         <h2 className="mt-12 font-display text-[1.75rem] leading-tight">Veri kaynakları</h2>
@@ -72,7 +73,7 @@ export function AboutPage() {
             href="https://www.themoviedb.org"
             target="_blank"
             rel="noreferrer"
-            className="inline-block"
+            className="inline-flex min-h-11 items-center"
           >
             <img
               src="/tmdb-logo.svg"

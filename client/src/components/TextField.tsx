@@ -28,7 +28,7 @@ export function TextField({ label, hint, error, type, ...input }: TextFieldProps
           aria-describedby={message ? messageId : undefined}
           className={`h-12 w-full border-b-2 bg-transparent text-lg transition-colors duration-200 focus:border-film focus:outline-none ${
             isPassword ? 'pr-20' : ''
-          } ${error ? 'border-alert' : 'border-line'}`}
+          } ${error ? 'border-alert' : 'border-light/40'}`}
         />
         {isPassword && (
           <button

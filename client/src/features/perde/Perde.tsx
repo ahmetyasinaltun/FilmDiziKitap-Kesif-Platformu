@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { CloseIcon } from '../../components/icons';
 import { LightImage } from './LightImage';
 
@@ -19,35 +19,82 @@ interface PerdeProps {
   /** Doluysa fragman perdede oynar ve ışıklar söner. */
   playingTrailer: string | null;
   onCloseTrailer: () => void;
+  /** Fragman kapanınca odağın döneceği öğe (fragman düğmesi) */
+  returnFocus?: RefObject<HTMLElement | null>;
   /** Altyazı */
   children: ReactNode;
 }
 
-export function Perde({ path, title, playingTrailer, onCloseTrailer, children }: PerdeProps) {
-  const closeButton = useRef<HTMLButtonElement>(null);
-  const playing = playingTrailer !== null;
-
+/**
+ * Fragman açıkken perdenin dışındaki her şey `inert` olur: Tab karartılmış sayfaya kaçamaz,
+ * ekran okuyucu da yalnızca fragmanı görür. Işıkları söndüren örtü dışarıda kalır, tıklanınca
+ * kapatır. Kapanışta önce `inert` kalkar, sonra odak döner; tersi olsaydı odak erişilemeyen
+ * düğmeye gidemezdi.
+ */
+function useTrailerFocus(
+  playing: boolean,
+  stage: RefObject<HTMLElement | null>,
+  closeButton: RefObject<HTMLElement | null>,
+  returnFocus: RefObject<HTMLElement | null> | undefined,
+  onClose: () => void,
+) {
   useEffect(() => {
     if (!playing) return;
+    const returnTarget = returnFocus?.current;
+    const inerted: HTMLElement[] = [];
+    for (let node = stage.current; node && node !== document.body; node = node.parentElement) {
+      for (const sibling of node.parentElement?.children ?? []) {
+        if (sibling === node || !(sibling instanceof HTMLElement)) continue;
+        if (sibling.inert || 'lightsOff' in sibling.dataset) continue;
+        sibling.setAttribute('inert', '');
+        inerted.push(sibling);
+      }
+    }
     closeButton.current?.focus();
+
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onCloseTrailer();
+      if (event.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [playing, onCloseTrailer]);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      for (const element of inerted) element.removeAttribute('inert');
+      returnTarget?.focus();
+    };
+  }, [playing, stage, closeButton, returnFocus, onClose]);
+}
+
+export function Perde({
+  path,
+  title,
+  playingTrailer,
+  onCloseTrailer,
+  returnFocus,
+  children,
+}: PerdeProps) {
+  const stage = useRef<HTMLDivElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const playing = playingTrailer !== null;
+  useTrailerFocus(playing, stage, closeButton, returnFocus, onCloseTrailer);
 
   return (
     <>
       {playing && (
         <div
           aria-hidden="true"
+          data-lights-off
           onClick={onCloseTrailer}
           className="lights-off fixed inset-0 z-20 bg-room/95"
         />
       )}
 
-      <div className={`relative ${playing ? 'z-30' : ''}`}>
+      <div
+        ref={stage}
+        role={playing ? 'dialog' : undefined}
+        aria-modal={playing ? true : undefined}
+        aria-label={playing ? `${title} fragmanı` : undefined}
+        className={`relative ${playing ? 'z-30' : ''}`}
+      >
         <div aria-hidden="true" className="perde-floor">
           <LightImage path={path} variant="light" className="room-light-image" />
         </div>

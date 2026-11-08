@@ -96,7 +96,10 @@ export function PageError({
         <>
           <h1 className="font-display text-[2.5rem] leading-tight">{notFoundTitle}</h1>
           <p className="mt-2 text-light-dim">Bağlantı hatalı olabilir ya da kayıt kaldırılmış.</p>
-          <Link to="/" className="mt-4 inline-block underline underline-offset-4">
+          <Link
+            to="/"
+            className="mt-4 inline-block underline underline-offset-4 hover:no-underline"
+          >
             Ana sayfaya dön
           </Link>
         </>

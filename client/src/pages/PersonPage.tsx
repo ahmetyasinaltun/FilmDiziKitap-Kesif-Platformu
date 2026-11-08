@@ -31,7 +31,13 @@ function CreditList({ credits, className = '' }: { credits: PersonCredit[]; clas
         return (
           <li key={`${content.type}-${content.id}`} className="flex gap-4 py-2.5">
             <span className="w-12 shrink-0 tabular-nums text-light-dim">
-              {content.year ?? <span aria-label="Yılı belli değil">–</span>}
+              {content.year ?? (
+                // Düz <span> üzerindeki aria-label birçok ekran okuyucuda okunmaz.
+                <>
+                  <span aria-hidden="true">–</span>
+                  <span className="sr-only">Yılı belli değil</span>
+                </>
+              )}
             </span>
             <div className="min-w-0">
               <Link

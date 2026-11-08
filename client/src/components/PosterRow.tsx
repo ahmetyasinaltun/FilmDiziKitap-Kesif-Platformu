@@ -6,6 +6,7 @@ import { formatRating } from '../lib/format';
 import { softHyphenate } from '../lib/hyphenate';
 import { posterSources, tmdbImage, tmdbSrcSet } from '../lib/tmdb-image';
 import { QueryError } from './QueryError';
+import { revealFocused } from '../lib/reveal-focused';
 
 const SKELETON_COUNT = 6;
 const scrollClass =
@@ -155,7 +156,7 @@ export function PosterRow({ title, items, layout = 'poster' }: PosterRowProps) {
       <h2 id={headingId} className="font-display text-[1.75rem] leading-tight">
         {title}
       </h2>
-      <ul className={`mt-2.5 lg:mt-4 ${scrollClass} ${columns}`}>
+      <ul onFocus={revealFocused} className={`mt-2.5 lg:mt-4 ${scrollClass} ${columns}`}>
         {items.map((item) => (
           <li key={`${item.type}-${item.id}`} className={cell}>
             <Card item={item} />

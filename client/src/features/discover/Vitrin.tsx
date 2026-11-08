@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { QueryError } from '../../components/QueryError';
 import { Stage, StageSkeleton } from '../titles/Stage';
 import { useTitle } from '../titles/use-title';
-import { FilmQueue } from './FilmQueue';
+import { FilmQueue, QueueSkeleton } from './FilmQueue';
 import { useNowPlaying, useTrending } from './use-discover';
 
 const QUEUE_SIZE = 12;
@@ -21,7 +21,13 @@ export function Vitrin() {
   const selected = items.find((item) => item.id === selectedId) ?? items[0];
   const detail = useTitle(selected?.type, selected?.id);
 
-  if (trending.isPending) return <StageSkeleton />;
+  if (trending.isPending) {
+    return (
+      <StageSkeleton>
+        <QueueSkeleton />
+      </StageSkeleton>
+    );
+  }
 
   if (trending.isError) {
     return (

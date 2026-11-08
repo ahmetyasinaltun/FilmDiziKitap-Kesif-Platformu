@@ -1,13 +1,14 @@
 import { Link, useSearchParams } from 'react-router';
 import { pillLink } from '../../components/button-styles';
 import { SEARCH_TABS, type SearchTab } from './use-search';
+import { revealFocused } from '../../lib/reveal-focused';
 
 export function SearchTabs({ active }: { active: SearchTab }) {
   const [params] = useSearchParams();
 
   return (
     <nav aria-label="Sonuç türü" className="mt-4">
-      <ul className="row-scroll flex gap-1 overflow-x-auto">
+      <ul onFocus={revealFocused} className="row-scroll -m-1.5 flex gap-1 overflow-x-auto p-1.5">
         {SEARCH_TABS.map((tab) => {
           const next = new URLSearchParams(params);
           if (tab.param) next.set('tur', tab.param);

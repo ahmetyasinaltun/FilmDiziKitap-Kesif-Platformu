@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { QueryError } from '../../components/QueryError';
-import { FilmQueue } from '../discover/FilmQueue';
+import { FilmQueue, QueueSkeleton } from '../discover/FilmQueue';
 import { BookStage, BookStageSkeleton } from './BookStage';
 import { useBook, useTurkishLiterature } from './use-books';
 
@@ -18,7 +18,13 @@ export function BookVitrin() {
   const selected = items.find((item) => item.id === selectedId) ?? items[0];
   const detail = useBook(selected?.id);
 
-  if (shelf.isPending) return <BookStageSkeleton />;
+  if (shelf.isPending) {
+    return (
+      <BookStageSkeleton vitrin>
+        <QueueSkeleton />
+      </BookStageSkeleton>
+    );
+  }
 
   if (shelf.isError) {
     return (

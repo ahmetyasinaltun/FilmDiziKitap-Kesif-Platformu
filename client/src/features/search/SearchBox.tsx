@@ -67,7 +67,7 @@ export function SearchBox() {
         autoCorrect="off"
         spellCheck={false}
         enterKeyHint="search"
-        className="search-input w-full border-b-2 border-line bg-transparent pb-2 pr-12 font-display text-[2rem] leading-tight tracking-[-0.01em] transition-colors duration-200 placeholder:text-light-dim focus:border-film focus:outline-none sm:text-[2.75rem] lg:text-[3.25rem]"
+        className="search-input w-full border-b-2 border-light/40 bg-transparent pb-2 pr-12 font-display text-[2rem] leading-tight tracking-[-0.01em] transition-colors duration-200 placeholder:text-light-dim focus:border-film focus:outline-none sm:text-[2.75rem] lg:text-[3.25rem]"
       />
       {draft && (
         <button

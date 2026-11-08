@@ -8,6 +8,7 @@ import {
 } from '../../lib/content';
 import { formatCount, formatRating } from '../../lib/format';
 import { tmdbImage } from '../../lib/tmdb-image';
+import { revealFocused } from '../../lib/reveal-focused';
 
 const CAST_LIMIT = 12;
 
@@ -135,7 +136,10 @@ export function CastRow({ cast }: { cast: CastMember[] }) {
       <h2 id="oyuncular" className="font-display text-[1.75rem] leading-tight">
         Oyuncular
       </h2>
-      <ul className="row-scroll -mx-4 mt-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 sm:mx-0 sm:px-0 sm:gap-5">
+      <ul
+        onFocus={revealFocused}
+        className="row-scroll -mx-4 mt-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 py-1.5 sm:-mx-1.5 sm:scroll-px-1.5 sm:gap-5 sm:px-1.5"
+      >
         {cast.slice(0, CAST_LIMIT).map((person) => (
           <li key={person.id} className="w-28 shrink-0 snap-start">
             <Link to={personPath(person.id)} className="group block">
