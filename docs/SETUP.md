@@ -79,8 +79,32 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 ## 5. Vercel
 
-1. [vercel.com/signup](https://vercel.com/signup) → **Hobby** planı → **GitHub ile devam et**.
-2. Şimdilik başka bir şey yapma. Projeyi bağlama işi Faz 6'da.
+Yapılandırma depoda hazır: `vercel.json` derlemeyi, `/api` yönlendirmesini, tek sayfa uygulama yönlendirmesini (bilinmeyen adresler `index.html`'e), Frankfurt bölgesini ve dosya önbelleğini tanımlar. `api/index.js` Express API'sini tek bir Vercel Function olarak çalıştırır.
+
+**Hesap**
+
+1. [vercel.com/signup](https://vercel.com/signup) → **Hobby** planı (ücretsiz, kredi kartı istemez) → **Continue with GitHub**.
+2. GitHub depo erişimi sorulursa **Only select repositories** → yalnızca bu depo.
+
+**Canlı ortam değişkenleri** (`server/.env.production`, git'e girmez)
+
+3. Dosya hazırdır: `NODE_ENV`, canlı ortama özel `JWT_SECRET` ve API anahtarları dolu. Eksik olan iki veritabanı adresi: Neon → **Connect** → dal seçicisinde **main**:
+   - **Connection pooling açık** iken görünen adres → `DATABASE_URL`
+   - **Connection pooling kapalı** iken görünen adres → `DIRECT_URL`
+   - İkisinde de `sslmode=require` kısmını `sslmode=verify-full` yap.
+4. Bağlantıları dene (değerler ekrana yazılmaz):
+   - Git Bash: `ENV_FILE=.env.production npm run check:env -w server`
+   - PowerShell: `$env:ENV_FILE='.env.production'; npm run check:env -w server; Remove-Item Env:ENV_FILE`
+5. Canlı veritabanına şemayı uygula (tabloları oluşturur): aynı yöntemle `npm run db:deploy -w server`.
+
+**Proje**
+
+6. [vercel.com/new](https://vercel.com/new) → depoyu seç → **Import**:
+   - **Application Preset:** `Other`. "Services" değil: o özellik Beta, npm workspaces ile kurulumu ve tek sayfa uygulama yönlendirmesi belgelenmemiş.
+   - **Root Directory:** `./`
+   - Build ve output ayarlarına dokunma; `vercel.json`'dan gelir.
+   - **Environment Variables:** `server/.env.production` dosyasının içeriğini kopyalayıp ilk kutuya yapıştır; Vercel satırları kendisi ayırır.
+7. **Deploy.** İlk yayın doğrudan canlı (production) olur; adres `<proje-adı>.vercel.app`.
 
 ## 6. Kontrol
 
