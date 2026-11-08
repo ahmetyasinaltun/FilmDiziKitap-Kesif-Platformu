@@ -23,7 +23,7 @@ import {
   workSchema,
 } from './schemas.js';
 
-const VERSION = 1;
+const VERSION = 2;
 const key = (...parts: (string | number)[]) => ['ol', `v${VERSION}`, ...parts].join(':');
 
 const HOUR = 60 * 60;

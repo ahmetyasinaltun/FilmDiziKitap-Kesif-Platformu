@@ -95,6 +95,17 @@ describe('dedupeBooks', () => {
 });
 
 describe('cleanDescription', () => {
+  it('girintili dipnotları, Windows satır sonlarını ve kaynak notunu temizler', () => {
+    const raw =
+      'Emily Jane Brontë was an English novelist. She published as Ellis Bell. ([Source][2].)\r\n\r\n\r\n' +
+      '  [1]: http://upstream.openlibrary.org/works/OL10427528W/Wuthering_Heights\r\n' +
+      '  [2]: http://en.wikipedia.org/wiki/Emily_Bronte';
+
+    expect(cleanDescription(raw)).toBe(
+      'Emily Jane Brontë was an English novelist. She published as Ellis Bell.',
+    );
+  });
+
   it('wiki eklerini ve bağlantıları temizler', () => {
     const raw =
       'A [dystopian](https://en.wikipedia.org/wiki/Dystopia) novel ([source][1])\n\n----------\nSee also: X\n[1]: https://example.com';

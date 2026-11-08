@@ -94,13 +94,16 @@ export function dedupeBooks<T extends ContentSummary>(books: T[]): T[] {
 
 /**
  * Open Library açıklamalarındaki wiki biçimini temizler: "----------" sonrası ek bölüm,
- * markdown bağlantıları ve kaynak dipnotları.
+ * markdown bağlantıları ve kaynak dipnotları. Metinler Windows satır sonu (\r\n) ve girintili
+ * dipnot satırları ("  [1]: http://...") içerebiliyor.
  */
 export function cleanDescription(value: string | null): string | null {
   if (!value) return null;
-  const cleaned = (value.split(/\n-{3,}/)[0] ?? value)
-    .replace(/\(\[source\]\[\d+\]\)/gi, '')
-    .replace(/^\[\d+\]:.*$/gm, '')
+  const text = value.replace(/\r\n?/g, '\n');
+  const cleaned = (text.split(/\n-{3,}/)[0] ?? text)
+    // "([Source][1])", "([source][2].)" ve bağlantısız "(Source.)"
+    .replace(/\s*\(\s*\[?source\]?(?:\[\d+\])?\s*\.?\s*\)/gi, '')
+    .replace(/^[ \t]*\[\d+\]:.*$/gm, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/\[([^\]]+)\]\[\d+\]/g, '$1')
     .replace(/\n{3,}/g, '\n\n')
