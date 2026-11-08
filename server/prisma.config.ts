@@ -1,7 +1,8 @@
 import { config } from 'dotenv';
 import { defineConfig } from 'prisma/config';
 
-config({ quiet: true });
+// Varsayılan server/.env; canlı veritabanı için ENV_FILE=.env.production (bkz. docs/SETUP.md §5).
+config({ path: process.env.ENV_FILE ?? '.env', quiet: true });
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',

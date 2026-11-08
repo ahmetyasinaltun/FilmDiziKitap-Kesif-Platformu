@@ -6,7 +6,8 @@ import { config } from 'dotenv';
 import pg from 'pg';
 import { describeIssues, envSchema, migrationEnvSchema } from '../config/env-schema.js';
 
-config({ quiet: true });
+// Varsayılan server/.env; canlı veritabanı için ENV_FILE=.env.production (bkz. docs/SETUP.md §5).
+config({ path: process.env.ENV_FILE ?? '.env', quiet: true });
 
 const TIMEOUT_MS = 10_000;
 
@@ -64,7 +65,7 @@ async function main() {
     ...(migration.success ? [] : describeIssues(migration.error)),
   ];
   if (!parsed.success || !migration.success) {
-    console.log('✗ Biçim hataları (server/.env, bkz. docs/SETUP.md):');
+    console.log(`✗ Biçim hataları (server/${process.env.ENV_FILE ?? '.env'}, bkz. docs/SETUP.md):`);
     for (const issue of formatIssues) console.log(`  - ${issue}`);
     process.exitCode = 1;
     return;
