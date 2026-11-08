@@ -1,4 +1,3 @@
-legacy/
 **/.impeccable/
 server/src/generated/
 server/prisma/migrations/

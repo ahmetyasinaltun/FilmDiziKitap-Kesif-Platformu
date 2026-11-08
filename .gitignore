@@ -29,6 +29,3 @@ npm-debug.log*
 .idea/
 *.swp
 
-# v1 uploads
-legacy/backend/uploads/*
-!legacy/backend/uploads/.gitkeep
