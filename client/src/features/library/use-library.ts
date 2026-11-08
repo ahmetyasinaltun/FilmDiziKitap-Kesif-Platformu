@@ -78,7 +78,11 @@ export function useSaveEntry(ref: ContentRef) {
     onError: (_error, _input, context) => {
       client.setQueryData(key, context?.previous);
     },
-    onSettled: () => client.invalidateQueries({ queryKey: ['library'] }),
+    // Yeniden çekme arka planda: Promise döndürülseydi TanStack Query işlemi onu bitene kadar
+    // sürüyor sayar, hata mesajı da ancak yeniden çekme bitince görünürdü.
+    onSettled: () => {
+      void client.invalidateQueries({ queryKey: ['library'] });
+    },
   });
 }
 
