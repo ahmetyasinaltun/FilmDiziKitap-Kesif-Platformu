@@ -118,7 +118,11 @@ export function LibraryControl({
             type="button"
             aria-pressed={selected}
             onClick={() => choose(status)}
-            className={selected ? activeButton : index === 0 ? idleClassName : quietButton}
+            // Film rengi sadece hiç kayıt yokken ilk düğmede: kayıt varsa en dikkat çekici
+            // düğme seçilmemiş seçenek olmasın.
+            className={
+              selected ? activeButton : index === 0 && !entry ? idleClassName : quietButton
+            }
           >
             {selected && <CheckIcon />}
             {labels[status]}
@@ -142,7 +146,7 @@ export function LibraryRating({ type, id }: { type: MediaType; id: string }) {
       {entry.status === 'completed' && (
         <fieldset>
           <legend className="font-medium">Puanın</legend>
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="mt-2 grid w-fit grid-cols-5 gap-2 sm:flex sm:gap-1">
             {SCORES.map((score) => {
               const selected = entry.rating === score;
               return (
@@ -162,7 +166,7 @@ export function LibraryRating({ type, id }: { type: MediaType; id: string }) {
                   <span
                     className={`grid size-10 place-items-center rounded-full font-medium tabular-nums transition-colors duration-200 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-film ${
                       selected
-                        ? 'bg-film font-bold text-film-ink'
+                        ? 'bg-light font-bold text-room'
                         : 'bg-light/10 text-light hover:bg-light/15'
                     }`}
                   >

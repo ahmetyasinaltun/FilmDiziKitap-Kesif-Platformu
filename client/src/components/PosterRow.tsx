@@ -3,6 +3,7 @@ import { useId, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { contentPath, type ContentSummary } from '../lib/content';
 import { formatRating } from '../lib/format';
+import { softHyphenate } from '../lib/hyphenate';
 import { posterSources, tmdbImage, tmdbSrcSet } from '../lib/tmdb-image';
 import { QueryError } from './QueryError';
 
@@ -48,9 +49,9 @@ export function CoverFrame({
     <div className={`relative aspect-[2/3] overflow-hidden bg-room-raised ${className}`}>
       <span
         aria-hidden="true"
-        className={`absolute inset-0 flex items-center justify-center overflow-hidden p-2 text-center font-display leading-snug [overflow-wrap:anywhere] ${compact ? 'text-sm' : ''}`}
+        className={`absolute inset-0 flex items-center justify-center overflow-hidden p-2 text-center font-display leading-snug hyphens-auto break-words ${compact ? 'text-sm' : ''}`}
       >
-        {title}
+        <span className={compact ? 'line-clamp-4' : 'line-clamp-5'}>{softHyphenate(title)}</span>
       </span>
       {children}
     </div>
@@ -82,7 +83,9 @@ export function PosterCard({ item, showType = false, note }: PosterCardProps) {
           />
         )}
       </CoverFrame>
-      <h3 className="mt-2 line-clamp-2 font-medium leading-snug">{item.title}</h3>
+      <h3 className="mt-2 line-clamp-2 font-medium leading-snug hyphens-auto break-words">
+        {softHyphenate(item.title)}
+      </h3>
       {details && <p className="line-clamp-1 text-sm text-light-dim">{details}</p>}
     </Link>
   );

@@ -225,6 +225,31 @@
     filter: blur(24px) saturate(1.6);
   }
 
+  /*
+   * Kitap kapağının ışığı: kapağın arkasında, merkezi kapakta olan bir hale. Genişlik kapağın
+   * katları; dairesel maske ile metne doğru söner.
+   */
+  .cover-light {
+    position: absolute;
+    z-index: -1;
+    inset: -45% -140%;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: var(--light-strength, 0.6);
+    transition: opacity 900ms var(--ease-light);
+    mask-image: radial-gradient(closest-side, #000 20%, transparent);
+    --light-duration: 900ms;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition-duration: 1ms;
+    }
+  }
+
+  /* Kapak küçük olduğu için çevresindeki parıltı perdedekinden belirgin. */
+  .cover-glow {
+    box-shadow: 0 24px 90px color-mix(in srgb, var(--color-film) 30%, transparent);
+  }
+
   .perde-screen {
     box-shadow: 0 30px 120px color-mix(in srgb, var(--color-film) 16%, transparent);
     transition: box-shadow 450ms var(--ease-light);
