@@ -18,7 +18,8 @@ Projeyi çalıştırmak için gereken hesaplar, API anahtarları ve ortam deği�
 | 5 | Vercel | Yayın | Yok (GitHub bağlantısı) | Faz 6, hesap şimdiden açılabilir |
 | – | Open Library | Kitapların ana kaynağı: arama, detay, kapak, yazar, trend | `APP_USER_AGENT` | Anahtar gerekmez |
 | – | Vikipedi / Wikidata | Kitapların Türkçe açıklaması | `APP_USER_AGENT` | Anahtar gerekmez |
-| – | Brevo, Cloudinary | E-posta, avatar yükleme | Faz 6'da eklenecek | Faz 6 |
+| 6 | Brevo | Kayıtta e-posta doğrulama bağlantısı | `BREVO_API_KEY`, `MAIL_FROM`, `APP_URL` | Canlıda zorunlu, geliştirmede isteğe bağlı |
+| – | Cloudinary | Avatar yükleme | Henüz yok | İleride |
 
 ## 0. `.env` dosyası
 
@@ -106,7 +107,26 @@ Yapılandırma depoda hazır: `vercel.json` derlemeyi, `/api` yönlendirmesini, 
    - **Environment Variables:** `server/.env.production` dosyasının içeriğini kopyalayıp ilk kutuya yapıştır; Vercel satırları kendisi ayırır.
 7. **Deploy.** İlk yayın doğrudan canlı (production) olur; adres `<proje-adı>.vercel.app`.
 
-## 6. Kontrol
+## 6. Brevo (e-posta doğrulama)
+
+Kayıt olan kullanıcıya doğrulama bağlantısı gönderir. Ücretsiz plan günde 300 e-posta, kredi kartı istemez, alan adı gerektirmez.
+
+**Geliştirmede isteğe bağlı:** `BREVO_API_KEY` ve `MAIL_FROM` boşsa e-posta gönderilmez, bağlantı `npm run dev` terminaline yazılır. Canlıda ikisi de zorunlu; eksikse sunucu açılmaz.
+
+1. Gönderen olarak kullanılacak bir e-posta adresi (ör. yeni bir Gmail). Kayıt olan herkes bu adresi "Kimden" satırında görür; kişisel adres kullanma.
+2. [brevo.com](https://www.brevo.com) → **Sign up free** → ücretsiz plan.
+3. **Senders, Domains & Dedicated IPs** → **Senders** → **Add a sender**: ad `Film Dizi Kitap`, adres 1. maddedeki. Brevo bu adrese bir onay e-postası gönderir; içindeki bağlantıya tıkla.
+4. **SMTP & API** → **API Keys** → **Generate a new API key**. Anahtar bir kez gösterilir; doğrudan dosyaya yapıştır, sohbete ya da başka bir yere yazma.
+5. `server/.env` ve `server/.env.production` içinde:
+   - `BREVO_API_KEY=` → anahtar
+   - `MAIL_FROM=` → gönderen adresi
+   - `APP_URL`: geliştirmede `http://localhost:5173`, canlıda sitenin adresi (doğrulama bağlantısı bu adresle başlar).
+6. `npm run check:env -w server` "Brevo (e-posta) (gönderen onaylı)" yazmalı.
+7. Canlı için Vercel → proje → **Settings** → **Environment Variables**: `BREVO_API_KEY`, `MAIL_FROM`, `APP_URL` eklenir. Bu değişkenler eklenmeden yayınlanan sürüm açılmaz (canlıda zorunlu oldukları için); önce değişkenler, sonra yayın.
+
+Gmail adresinden gönderilen e-postalar alıcıda "gereksiz" klasörüne düşebilir (gönderen alan adı Brevo'nun sunucularını tanımıyor). Bir demo için yeterli; kalıcı çözüm kendi alan adı ve DNS kayıtları (SPF, DKIM).
+
+## 7. Kontrol
 
 Değerleri `.env`'ye yazdıktan sonra kök dizinde:
 
@@ -126,10 +146,11 @@ Komut önce biçimi (eksik/hatalı değişken) kontrol eder, sonra her servise g
 ✓ OMDb
 ✓ Google Books
 ✓ Open Library
+✓ Brevo (e-posta) (gönderen onaylı)
 ✓ Vikipedi
 ```
 
-`!` işareti zorunlu olmayan bir servisin (Google Books, Vikipedi) o an erişilemediğini gösterir; uygulama yine çalışır. Google Books'un arama altyapısı sık sık `503` veriyor (Google tarafındaki bir sorun); bu durumda `!` görmek normal.
+`!` işareti zorunlu olmayan bir servisin (Google Books, Vikipedi) o an erişilemediğini ya da geliştirmede boş bırakılan Brevo'yu gösterir; uygulama yine çalışır. Google Books'un arama altyapısı sık sık `503` veriyor (Google tarafındaki bir sorun); bu durumda `!` görmek normal.
 
 | Hata | Anlamı | Çözüm |
 |---|---|---|
