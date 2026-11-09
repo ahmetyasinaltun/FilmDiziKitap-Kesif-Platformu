@@ -6,9 +6,13 @@ import { z } from 'zod';
 import { env } from '../../config/env.js';
 import type { ExternalRatings } from '../../domain/content.js';
 import { cached } from '../../lib/api-cache.js';
+import { takeFromDailyBudget } from '../../lib/daily-budget.js';
 import { fetchJson, ProviderError } from '../../lib/http.js';
+import { logger } from '../../lib/logger.js';
 
 const VERSION = 1;
+/** Ücretsiz plan günde 1000 istek; pay, bağlantı kontrolü ve elle denemeler için. */
+const DAILY_BUDGET = 900;
 
 const omdbSchema = z.object({
   Response: z.enum(['True', 'False']),
@@ -42,6 +46,11 @@ const EMPTY: ExternalRatings = { imdb: null, rottenTomatoes: null, metacritic: n
 
 export function getExternalRatings(imdbId: string): Promise<ExternalRatings> {
   return cached(`omdb:v${VERSION}:${imdbId}`, { ttl: 7 * 24 * 60 * 60 }, async () => {
+    // Bütçe dolduysa OMDb hiç çağrılmaz: puanlar o gün boş kalır, sayfa çalışmaya devam eder.
+    if (!(await takeFromDailyBudget('omdb', DAILY_BUDGET))) {
+      logger.warn('OMDb günlük bütçesi doldu; puanlar yarına kadar gösterilmeyecek');
+      throw new ProviderError('OMDb', 'unavailable');
+    }
     const url = new URL('https://www.omdbapi.com/');
     url.search = new URLSearchParams({ apikey: env.OMDB_API_KEY, i: imdbId }).toString();
     // OMDb kota dolunca veya anahtar geçersizse HTTP 401 döner → "unavailable".

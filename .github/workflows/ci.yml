@@ -24,6 +24,10 @@ jobs:
       # postinstall Prisma client'ı üretir; veritabanı adresi gerekmez.
       - run: npm ci
 
+      # Çalışma anında kullanılan paketlerde yüksek ya da kritik açık varsa CI kırmızıya döner.
+      # Geliştirme araçları canlıya girmediği için taramaya katılmaz.
+      - run: npm audit --omit=dev --audit-level=high
+
       - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck

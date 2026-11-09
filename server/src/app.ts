@@ -3,6 +3,8 @@ import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { logger } from './lib/logger.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
+import { limitRequests } from './middleware/rate-limit.js';
+import { sameOriginOnly } from './middleware/same-origin.js';
 import { authRouter } from './routes/auth.js';
 import { authorsRouter, booksRouter } from './routes/books.js';
 import { discoverRouter } from './routes/discover.js';
@@ -41,6 +43,19 @@ export function createApp() {
 
   const api = Router();
   api.use('/health', healthRouter);
+  // Veri değiştiren istekler yalnız bu siteden (CSRF'e karşı ikinci katman).
+  api.use(sameOriginOnly);
+  // Kaba hız sınırı: CDN önbelleğinden dönen istekler sunucuya hiç gelmez, sayılmaz. Bellekte
+  // tutulur ki her istek veritabanına yazmasın; kesin koruma gereken yerlerde ayrı sınırlar var.
+  api.use(
+    limitRequests({
+      name: 'api',
+      windowMinutes: 1,
+      limit: 120,
+      store: 'memory',
+      message: 'Çok fazla istek gönderildi.',
+    }),
+  );
   api.use('/auth', authRouter);
   api.use('/search', searchRouter);
   api.use('/discover', discoverRouter);
