@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { LIBRARY_STATUSES } from '../domain/library.js';
 import { noStore } from '../middleware/cache-control.js';
-import { requireUser } from '../services/auth.js';
+import { requireUser, requireVerifiedUser } from '../services/auth.js';
 import { getEntry, removeEntry, saveEntry } from '../services/library.js';
 import { contentRefParams } from './params.js';
 
@@ -38,14 +38,14 @@ libraryRouter.get('/:type/:id', async (req, res) => {
 
 libraryRouter.put('/:type/:id', async (req, res) => {
   const ref = contentRefParams.parse(req.params);
-  const user = await requireUser(req);
+  const user = await requireVerifiedUser(req);
   const input = entryBody.parse(req.body);
   res.json({ entry: await saveEntry(user.id, ref, input) });
 });
 
 libraryRouter.delete('/:type/:id', async (req, res) => {
   const ref = contentRefParams.parse(req.params);
-  const user = await requireUser(req);
+  const user = await requireVerifiedUser(req);
   await removeEntry(user.id, ref);
   res.status(204).end();
 });

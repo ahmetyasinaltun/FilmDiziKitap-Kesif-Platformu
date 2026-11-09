@@ -27,21 +27,42 @@ function useLibrary(ref: ContentRef) {
   return { user, entry: entry.data ?? null, save };
 }
 
-function Notice({ show, error }: { show: boolean; error: Error | null }) {
+/** Kaydetmeden önce yapılması gereken: ziyaretçi giriş yapar, yeni hesap e-postasını doğrular. */
+type Need = 'login' | 'verify';
+
+/** Sunucu da aynı şeyi söyleyebilir: oturum süresi dolmuşsa 401, doğrulanmamış hesapta 403. */
+function needFromError(error: Error | null): Need | null {
+  if (!(error instanceof ApiError)) return null;
+  if (error.status === 401) return 'login';
+  if (error.code === 'EMAIL_NOT_VERIFIED') return 'verify';
+  return null;
+}
+
+const noticeLink = 'underline underline-offset-4 hover:text-light';
+
+function Notice({ need, error }: { need: Need | null; error: Error | null }) {
   const { pathname, search } = useLocation();
-  const expired = error instanceof ApiError && error.status === 401;
-  const login = `/giris?next=${encodeURIComponent(pathname + search)}`;
+  const reason = need ?? needFromError(error);
+  const back = encodeURIComponent(pathname + search);
 
   return (
     <p
       role="status"
       className="absolute left-0 top-full mt-1 whitespace-nowrap text-sm text-light-dim lg:left-auto lg:right-0"
     >
-      {show || expired ? (
+      {reason === 'login' ? (
         <>
           Kaydetmek için{' '}
-          <Link to={login} className="underline underline-offset-4 hover:text-light">
+          <Link to={`/giris?next=${back}`} className={noticeLink}>
             giriş yap
+          </Link>
+          .
+        </>
+      ) : reason === 'verify' ? (
+        <>
+          Kaydetmek için önce{' '}
+          <Link to={`/eposta-dogrula?next=${back}`} className={noticeLink}>
+            e-postanı doğrula
           </Link>
           .
         </>
@@ -69,12 +90,12 @@ export function LibraryControl({
 }: LibraryControlProps) {
   const ref = { type, id };
   const { user, entry, save } = useLibrary(ref);
-  const [guestNotice, setGuestNotice] = useState(false);
+  const [need, setNeed] = useState<Need | null>(null);
   const labels = LABELS[type];
 
   const choose = (status: LibraryStatus) => {
-    if (!user) {
-      setGuestNotice(true);
+    if (!user || !user.emailVerified) {
+      setNeed(user ? 'verify' : 'login');
       return;
     }
     save.mutate({ status });
@@ -103,7 +124,7 @@ export function LibraryControl({
           {planned && <CheckIcon />}
           {labels.planned}
         </button>
-        <Notice show={guestNotice} error={save.error} />
+        <Notice need={need} error={save.error} />
       </div>
     );
   }
@@ -129,7 +150,7 @@ export function LibraryControl({
           </button>
         );
       })}
-      <Notice show={guestNotice} error={save.error} />
+      <Notice need={need} error={save.error} />
     </div>
   );
 }

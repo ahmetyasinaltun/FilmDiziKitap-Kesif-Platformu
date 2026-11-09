@@ -9,7 +9,9 @@ import {
   setSessionCookie,
   shouldRefresh,
 } from '../lib/session.js';
-import { getSession, loginUser, registerUser } from '../services/auth.js';
+import { logger } from '../lib/logger.js';
+import { getSession, loginUser, registerUser, requireUser } from '../services/auth.js';
+import { sendVerificationEmail, verifyEmail } from '../services/email-verification.js';
 
 /** Profil adresinde kullanılır (/u/{username}): sadece URL dostu karakterler. */
 const usernameSchema = z
@@ -45,6 +47,11 @@ const loginBody = z.object({
   password: z.string().min(1, 'Şifre gir.'),
 });
 
+const verifyBody = z.object({
+  // 32 rastgele baytın base64url hali (43 karakter)
+  token: z.string().trim().min(20, 'Doğrulama kodu eksik.').max(100),
+});
+
 export const authRouter = Router();
 
 // Kullanıcıya özel yanıtlar: tarayıcı ya da CDN önbelleğinde saklanmaz.
@@ -57,7 +64,33 @@ authRouter.post(
     const input = registerBody.parse(req.body);
     const user = await registerUser(input);
     await setSessionCookie(res, user.id);
+    // E-posta servisi düşse de kayıt tamamlanır: kullanıcı "tekrar gönder" ile yeni bağlantı ister.
+    await sendVerificationEmail(user).catch((error: unknown) => {
+      logger.error({ err: error }, 'Kayıttan sonra doğrulama e-postası gönderilemedi');
+    });
     res.status(201).json({ user });
+  },
+);
+
+/** E-postadaki bağlantı: giriş gerekmez, bağlantı başka bir cihazda da açılabilir. */
+authRouter.post('/verify-email', async (req, res) => {
+  const { token } = verifyBody.parse(req.body);
+  const user = await verifyEmail(token);
+  res.json({ user });
+});
+
+authRouter.post(
+  '/verify-email/resend',
+  limitRequests({
+    name: 'verify-resend',
+    windowMinutes: 60,
+    limit: 3,
+    message: 'Çok fazla doğrulama e-postası istendi.',
+  }),
+  async (req, res) => {
+    const user = await requireUser(req);
+    if (!user.emailVerified) await sendVerificationEmail(user);
+    res.status(204).end();
   },
 );
 

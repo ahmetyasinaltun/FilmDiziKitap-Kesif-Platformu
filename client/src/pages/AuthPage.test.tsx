@@ -9,7 +9,10 @@ const routes = [
   { path: '/kayit', element: <AuthPage mode="register" /> },
   { path: '/kutuphane', element: <p>Kütüphane sayfası</p> },
   { path: '/film/:id', element: <p>Film sayfası</p> },
+  { path: '/eposta-dogrula', element: <p>E-posta doğrulama sayfası</p> },
 ];
+
+const unverified = { ...testUser, emailVerified: false };
 
 async function logIn() {
   const user = userEvent.setup();
@@ -44,6 +47,23 @@ describe('kayıt', () => {
       email: 'deneme@example.com',
       password: 'gizli-sifre-123',
     });
+  });
+});
+
+describe('kayıttan sonra', () => {
+  it('yeni hesap "e-postanı kontrol et" ekranına uğrar, geldiği sayfayı unutmaz', async () => {
+    mockApi({ 'POST /auth/register': { status: 201, body: { user: unverified } } });
+    const { router } = renderApp(routes, `/kayit?next=${encodeURIComponent('/film/27205')}`);
+    const user = userEvent.setup();
+
+    await user.type(await screen.findByLabelText('Kullanıcı adı'), 'deneme');
+    await user.type(screen.getByLabelText('E-posta'), 'deneme@example.com');
+    await user.type(screen.getByLabelText('Şifre'), 'gizli-sifre-123');
+    await user.click(screen.getByRole('button', { name: 'Hesap oluştur' }));
+
+    expect(await screen.findByText('E-posta doğrulama sayfası')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/eposta-dogrula');
+    expect(router.state.location.search).toBe(`?next=${encodeURIComponent('/film/27205')}`);
   });
 });
 

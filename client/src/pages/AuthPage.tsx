@@ -17,7 +17,15 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const [params] = useSearchParams();
   const { title, lead } = COPY[mode];
 
-  if (user) return <Navigate to={safeNextPath(params.get('next'), '/kutuphane')} replace />;
+  if (user) {
+    const next = safeNextPath(params.get('next'), '/kutuphane');
+    // Yeni hesap önce "e-postanı kontrol et" ekranına uğrar; oradan kaldığı yere döner.
+    const to =
+      mode === 'register' && !user.emailVerified
+        ? `/eposta-dogrula?${new URLSearchParams({ next })}`
+        : next;
+    return <Navigate to={to} replace />;
+  }
 
   return (
     <div className="page-gutter mx-auto w-full max-w-md pt-6 sm:pt-14">

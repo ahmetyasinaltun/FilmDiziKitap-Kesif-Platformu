@@ -53,6 +53,23 @@ describe('kütüphane düğmeleri', () => {
     expect(api.calls.some((call) => call.path.startsWith('/library'))).toBe(false);
   });
 
+  it('e-postasını doğrulamamış hesaba doğrulama bağlantısı gösterir, kaydetmeye çalışmaz', async () => {
+    const api = mockApi({
+      'GET /auth/me': { body: { user: { ...testUser, emailVerified: false } } },
+      [`GET ${ENTRY_PATH}`]: { body: { entry: null } },
+    });
+    renderControl();
+
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'İzleyeceğim' }));
+
+    const link = await screen.findByRole('link', { name: 'e-postanı doğrula' });
+    expect(link).toHaveAttribute(
+      'href',
+      `/eposta-dogrula?next=${encodeURIComponent('/film/27205')}`,
+    );
+    expect(api.calls.some((call) => call.method === 'PUT')).toBe(false);
+  });
+
   it('kaydı sunucuyu beklemeden gösterir', async () => {
     const response = deferred();
     const api = mockApi({

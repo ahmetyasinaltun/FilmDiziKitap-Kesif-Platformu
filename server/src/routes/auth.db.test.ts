@@ -49,6 +49,7 @@ describe('POST /api/auth/register', () => {
       email: 'ahmet@ornek.com',
       displayName: null,
       avatarUrl: null,
+      emailVerified: false,
     });
     expect(res.headers['cache-control']).toBe('no-store');
 

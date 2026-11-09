@@ -6,6 +6,10 @@ export const filmButton = `${base} bg-film text-film-ink hover:brightness-110 di
 
 export const quietButton = `${base} bg-light/10 text-light shadow-[inset_0_0_0_1px_var(--color-line)] hover:bg-light/15 disabled:cursor-default disabled:opacity-60`;
 
+/** Mesajın yanındaki küçük ikincil düğme: "Tekrar dene", "Bağlantıyı tekrar gönder". */
+export const smallQuietButton =
+  'pressable h-11 cursor-pointer rounded-full bg-light/10 px-5 font-medium text-light hover:bg-light/15 disabled:cursor-default disabled:opacity-60';
+
 /** Seçili durum: kaydedildiğini gösterir. */
 export const activeButton = `${base} bg-light text-room hover:bg-light/90`;
 

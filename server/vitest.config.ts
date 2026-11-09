@@ -17,6 +17,9 @@ export default defineConfig({
       OMDB_API_KEY: 'test',
       GOOGLE_BOOKS_API_KEY: 'test',
       APP_USER_AGENT: 'FilmDiziKitap/test (test@example.com)',
+      BREVO_API_KEY: 'test',
+      MAIL_FROM: 'gonderen@example.com',
+      APP_URL: 'http://localhost:5173',
     },
     projects: [
       {

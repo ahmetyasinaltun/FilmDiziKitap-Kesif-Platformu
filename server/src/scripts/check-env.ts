@@ -44,6 +44,24 @@ async function checkHttp(
   return isValid(body) ? { ok: true } : { ok: false, detail: 'beklenmeyen yanıt' };
 }
 
+/**
+ * Brevo: anahtar geçerli mi ve MAIL_FROM onaylı bir gönderen mi? Onaysız adresten gönderim
+ * Brevo'da reddedilir; bu hata ancak ilk kayıtta fark edilirdi. E-posta göndermez.
+ */
+async function checkBrevo(apiKey: string, sender: string): Promise<CheckResult> {
+  const res = await fetch('https://api.brevo.com/v3/senders', {
+    headers: { 'api-key': apiKey, accept: 'application/json' },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  if (res.status === 401) return { ok: false, detail: 'anahtar geçersiz' };
+  if (!res.ok) return { ok: false, detail: `HTTP ${res.status}` };
+  const body = (await res.json()) as { senders?: { email?: string; active?: boolean }[] };
+  const match = body.senders?.find((item) => item.email?.toLowerCase() === sender.toLowerCase());
+  if (!match) return { ok: false, detail: 'MAIL_FROM, Brevo’da gönderen olarak eklenmemiş' };
+  if (!match.active) return { ok: false, detail: 'MAIL_FROM henüz onaylanmamış (Brevo e-postası)' };
+  return { ok: true, detail: 'gönderen onaylı' };
+}
+
 /** Hata mesajı bir adres içerebilir (anahtarlı query string). Sadece güvenli kısmı göster. */
 function safeErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -124,6 +142,16 @@ async function main() {
         checkHttp('https://openlibrary.org/search.json?q=tutunamayanlar&limit=1', {
           headers: { 'User-Agent': env.APP_USER_AGENT },
         }),
+    },
+    {
+      // Kayıttaki doğrulama e-postası; düşerse hesap açılır ama doğrulanamaz. Geliştirmede boş
+      // bırakılabilir (bağlantı terminale yazılır); canlıda env şeması zaten zorunlu tutar.
+      name: 'Brevo (e-posta)',
+      required: env.BREVO_API_KEY !== undefined,
+      run: async () =>
+        env.BREVO_API_KEY && env.MAIL_FROM
+          ? checkBrevo(env.BREVO_API_KEY, env.MAIL_FROM)
+          : { ok: false, detail: 'boş: e-posta gönderilmez, bağlantı terminale yazılır' },
     },
     {
       // Kitapların Türkçe açıklaması (isteğe bağlı)

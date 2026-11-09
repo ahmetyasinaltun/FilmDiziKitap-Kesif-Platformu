@@ -12,6 +12,7 @@ import { PersonPage } from './pages/PersonPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SearchPage } from './pages/SearchPage';
 import { TitlePage } from './pages/TitlePage';
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
       { path: '/giris', element: <AuthPage mode="login" /> },
       { path: '/kayit', element: <AuthPage mode="register" /> },
       { path: '/kutuphane', element: <LibraryPage /> },
+      { path: '/eposta-dogrula', element: <VerifyEmailPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

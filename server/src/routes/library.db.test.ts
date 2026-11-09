@@ -64,6 +64,25 @@ describe('PUT /api/library/:type/:id', () => {
     expect(res.status).toBe(401);
   });
 
+  it('e-postasını doğrulamamış hesap kaydedemez ve çıkaramaz (403)', async () => {
+    const unverified = await signUp(
+      app,
+      { username: 'mehmet', email: 'mehmet@ornek.com' },
+      { verified: false },
+    );
+
+    const saved = await put('movie/27205', { status: 'planned' }, unverified.cookie);
+    const removed = await request(app)
+      .delete('/api/library/movie/27205')
+      .set('Cookie', unverified.cookie);
+
+    for (const res of [saved, removed]) {
+      expect(res.status).toBe(403);
+      expect(res.body.error.code).toBe('EMAIL_NOT_VERIFIED');
+    }
+    expect(await contentRows()).toEqual([]);
+  });
+
   it('içeriği ekler ve özetini sağlayıcıdan doğrulayarak kaydeder', async () => {
     const res = await put('movie/27205', { status: 'planned' });
 

@@ -1,3 +1,5 @@
+import { smallQuietButton } from './button-styles';
+
 interface QueryErrorProps {
   message: string;
   onRetry: () => void;
@@ -8,11 +10,7 @@ export function QueryError({ message, onRetry }: QueryErrorProps) {
   return (
     <div role="alert" className="flex flex-wrap items-center gap-4 text-light-dim">
       <p>{message}</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="pressable h-11 cursor-pointer rounded-full bg-light/10 px-5 font-medium text-light hover:bg-light/15"
-      >
+      <button type="button" onClick={onRetry} className={smallQuietButton}>
         Tekrar dene
       </button>
     </div>

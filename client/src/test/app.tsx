@@ -10,6 +10,7 @@ export const testUser: SessionUser = {
   email: 'deneme@example.com',
   displayName: null,
   avatarUrl: null,
+  emailVerified: true,
 };
 
 interface Reply {

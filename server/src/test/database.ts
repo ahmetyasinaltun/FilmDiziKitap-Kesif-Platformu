@@ -1,7 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import pg from 'pg';
-import { afterAll, inject } from 'vitest';
+import { afterAll, inject, vi } from 'vitest';
+import type * as mailer from '../lib/mailer.js';
 import { TEMPLATE_DATABASE, withDatabase } from './db-url.js';
+
+// Veritabanı testleri hiçbir zaman gerçek e-posta göndermez (kayıt bile bir e-posta tetikler).
+// Gönderilenler `src/test/mail.ts` ile okunur; gerçek gönderim `lib/mailer.test.ts`'te.
+vi.mock('../lib/mailer.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof mailer>()),
+  sendEmail: vi.fn(),
+}));
 
 /**
  * Her veritabanı test dosyasına özel, migration'ları uygulanmış boş bir PostgreSQL veritabanı

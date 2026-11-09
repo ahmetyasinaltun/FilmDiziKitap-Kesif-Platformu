@@ -6,13 +6,21 @@ import { hashPassword, verifyPassword } from '../lib/password.js';
 import { prisma } from '../lib/prisma.js';
 import { readSessionToken, type SessionToken } from '../lib/session.js';
 
-const sessionUserSelect = {
+export const sessionUserSelect = {
   id: true,
   username: true,
   email: true,
   displayName: true,
   avatarUrl: true,
+  emailVerifiedAt: true,
 } satisfies Prisma.UserSelect;
+
+type SessionUserRow = Prisma.UserGetPayload<{ select: typeof sessionUserSelect }>;
+
+/** Veritabanı satırı → yanıttaki kullanıcı. Doğrulama zamanı dışarıya yalnız evet/hayır olarak çıkar. */
+export function toSessionUser({ emailVerifiedAt, ...user }: SessionUserRow): SessionUser {
+  return { ...user, emailVerified: emailVerifiedAt !== null };
+}
 
 export interface RegisterInput {
   username: string;
@@ -43,10 +51,11 @@ export async function registerUser(input: RegisterInput): Promise<SessionUser> {
   await assertAvailable(input.username, input.email);
   const passwordHash = await hashPassword(input.password);
   try {
-    return await prisma.user.create({
+    const row = await prisma.user.create({
       data: { username: input.username, email: input.email, passwordHash },
       select: sessionUserSelect,
     });
+    return toSessionUser(row);
   } catch (error) {
     // Kontrol ile kayıt arasında aynı adı başka biri almış olabilir; veritabanının unique
     // kısıtı bunu yakalar (P2002). Hangi alan olduğunu bulmak için kontrol tekrarlanır.
@@ -73,7 +82,7 @@ export async function loginUser(identifier: string, password: string): Promise<S
     throw new AppError(401, 'INVALID_CREDENTIALS', 'Kullanıcı adı, e-posta veya şifre hatalı.');
   }
   const { passwordHash, ...user } = row;
-  return user;
+  return toSessionUser(user);
 }
 
 export interface Session {
@@ -85,11 +94,11 @@ export interface Session {
 export async function getSession(req: Request): Promise<Session | null> {
   const token = await readSessionToken(req);
   if (!token) return null;
-  const user = await prisma.user.findUnique({
+  const row = await prisma.user.findUnique({
     where: { id: token.userId },
     select: sessionUserSelect,
   });
-  return user ? { user, token } : null;
+  return row ? { user: toSessionUser(row), token } : null;
 }
 
 /** Giriş gerektiren uçlar için: kullanıcı yoksa 401 fırlatır. */
@@ -99,4 +108,16 @@ export async function requireUser(req: Request): Promise<SessionUser> {
     throw new AppError(401, 'UNAUTHENTICATED', 'Bu işlem için giriş yapmalısın.');
   }
   return session.user;
+}
+
+/**
+ * Kütüphaneye yazan uçlar için: e-postasını doğrulamamış hesap kayıt yapamaz (403). Uydurma bir
+ * e-postayla açılan hesap böylece işe yaramaz; giriş ve gezinme yine serbest.
+ */
+export async function requireVerifiedUser(req: Request): Promise<SessionUser> {
+  const user = await requireUser(req);
+  if (!user.emailVerified) {
+    throw new AppError(403, 'EMAIL_NOT_VERIFIED', 'Kaydetmek için önce e-posta adresini doğrula.');
+  }
+  return user;
 }

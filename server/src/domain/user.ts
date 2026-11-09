@@ -5,4 +5,6 @@ export interface SessionUser {
   email: string;
   displayName: string | null;
   avatarUrl: string | null;
+  /** false ise hesap kütüphaneye kayıt yapamaz; doğrulama bağlantısı e-postayla gelir. */
+  emailVerified: boolean;
 }

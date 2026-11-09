@@ -14,18 +14,21 @@ datasource db {
 // ---------- Kullanıcı ----------
 
 model User {
-  id           String   @id @default(cuid())
+  id              String    @id @default(cuid())
   /// Küçük harfle saklanır; profil adresi: /u/{username}
-  username     String   @unique
+  username        String    @unique
   /// Küçük harfle saklanır
-  email        String   @unique
-  passwordHash String
-  displayName  String?
-  bio          String?
-  avatarUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  email           String    @unique
+  passwordHash    String
+  displayName     String?
+  bio             String?
+  avatarUrl       String?
+  /// E-posta doğrulandığı an; boşsa hesap kütüphaneye kayıt yapamaz
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
+  authTokens     AuthToken[]
   libraryEntries LibraryEntry[]
   lists          List[]
   reviews        Review[]
@@ -201,4 +204,25 @@ model ReviewLike {
 
   @@id([userId, reviewId])
   @@index([reviewId])
+}
+
+// ---------- Tek kullanımlık e-posta bağlantıları ----------
+
+enum AuthTokenPurpose {
+  VERIFY_EMAIL
+}
+
+/// E-postadaki bağlantının kodu. Kodun kendisi değil SHA-256 özeti saklanır: veritabanı sızsa
+/// bile bağlantılar kullanılamaz. Kullanılınca ya da yenisi istenince silinir.
+model AuthToken {
+  id        String           @id @default(cuid())
+  userId    String
+  purpose   AuthTokenPurpose
+  tokenHash String           @unique
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
 }

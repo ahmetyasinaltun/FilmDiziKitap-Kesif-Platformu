@@ -32,6 +32,29 @@ export function useAuthForm(path: 'login' | 'register') {
   });
 }
 
+/**
+ * E-postadaki bağlantının kodunu sunucuya gönderir. Bağlantı başka bir cihazda ya da başka bir
+ * hesap açıkken de açılabilir: sonuç doğrudan yazılmaz, oturum sunucudan yeniden okunur.
+ */
+export function useVerifyEmail() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (token: string) =>
+      apiFetch<SessionResponse>('/auth/verify-email', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      }),
+    onSuccess: () => void client.invalidateQueries({ queryKey: SESSION_KEY }),
+  });
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: () => apiFetch<null>('/auth/verify-email/resend', { method: 'POST' }),
+  });
+}
+
 export function useLogout() {
   const client = useQueryClient();
 
