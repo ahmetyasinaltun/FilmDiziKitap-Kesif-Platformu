@@ -11,7 +11,10 @@ export default defineConfig({
     // aynı adreste (same-origin) olur: CORS gerekmez, cookie'ler sorunsuz çalışır.
     // Canlıda (Vercel) aynı yapı rewrite ile kurulur.
     proxy: {
-      '/api': 'http://localhost:5000',
+      // `changeOrigin: false`: Host başlığı tarayıcının gördüğü adres (localhost:5173) kalır.
+      // Vite'ın kısa yazımı onu hedefe (5000) çevirir; o zaman sunucudaki köken kontrolü
+      // (middleware/same-origin.ts) tarayıcıdan gelen her POST'u başka siteden sanıp reddeder.
+      '/api': { target: 'http://localhost:5000', changeOrigin: false },
     },
   },
   test: {
