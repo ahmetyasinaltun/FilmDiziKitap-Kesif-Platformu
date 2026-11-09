@@ -45,15 +45,33 @@ async function checkHttp(
 }
 
 /**
- * Brevo: anahtar geçerli mi ve MAIL_FROM onaylı bir gönderen mi? Onaysız adresten gönderim
- * Brevo'da reddedilir; bu hata ancak ilk kayıtta fark edilirdi. E-posta göndermez.
+ * Brevo, e-posta göndermeden iki adımda denenir:
+ * 1. Gönderme izni: boş gövdeli gönderim isteği. Yetki geçerse Brevo eksik alan için 400 döner
+ *    ve hiçbir şey gönderilmez; 401 anahtar ya da IP sorunu, 403 izin eksikliğidir.
+ * 2. Gönderen onayı: MAIL_FROM onaylı mı? Onaysız adresten gönderim reddedilir. Bunu okumak hesap
+ *    izni ister; yalnız e-posta izinli (en az yetkili) anahtarda bu adım atlanır.
  */
 async function checkBrevo(apiKey: string, sender: string): Promise<CheckResult> {
-  const res = await fetch('https://api.brevo.com/v3/senders', {
-    headers: { 'api-key': apiKey, accept: 'application/json' },
+  const headers = { 'api-key': apiKey, accept: 'application/json' };
+  const send = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { ...headers, 'content-type': 'application/json' },
+    body: '{}',
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
-  if (res.status === 401) return { ok: false, detail: 'anahtar geçersiz' };
+  if (send.status === 401) {
+    return { ok: false, detail: 'anahtar geçersiz ya da IP engelli (Security → Authorized IPs)' };
+  }
+  if (send.status === 403) return { ok: false, detail: 'anahtarın e-posta gönderme izni yok' };
+  if (send.status !== 400) return { ok: false, detail: `HTTP ${send.status}` };
+
+  const res = await fetch('https://api.brevo.com/v3/senders', {
+    headers,
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  if (res.status === 403) {
+    return { ok: true, detail: 'gönderebiliyor; gönderen onayını Brevo panelinden kontrol et' };
+  }
   if (!res.ok) return { ok: false, detail: `HTTP ${res.status}` };
   const body = (await res.json()) as { senders?: { email?: string; active?: boolean }[] };
   const match = body.senders?.find((item) => item.email?.toLowerCase() === sender.toLowerCase());

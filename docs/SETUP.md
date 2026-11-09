@@ -116,13 +116,13 @@ Kayıt olan kullanıcıya doğrulama bağlantısı gönderir. Ücretsiz plan gü
 1. Gönderen olarak kullanılacak bir e-posta adresi (ör. yeni bir Gmail). Kayıt olan herkes bu adresi "Kimden" satırında görür; kişisel adres kullanma.
 2. [brevo.com](https://www.brevo.com) → **Sign up free** → ücretsiz plan.
 3. **Settings** → **Senders, domains, IPs** → **Senders** sekmesi → **Add sender**: ad `Film Dizi Kitap`, adres 1. maddedeki. Brevo bu adrese bir onay e-postası gönderir; içindeki bağlantıya tıkla ya da kodu gir. (**Domains** sekmesi kendi alan adın içindir; `gmail.com` oraya eklenmez.)
-4. **SMTP & API** → **API Keys** → **Generate a new API key**. Anahtar bir kez gösterilir; doğrudan dosyaya yapıştır, sohbete ya da başka bir yere yazma.
+4. **SMTP & API** → **API Keys** → **Generate a new API key**. İzin seçimi sorulursa yalnızca işlemsel e-posta (transactional) gönderme izni yeterli: anahtar sızsa bile hesap ayarları okunamaz. Anahtar bir kez gösterilir; doğrudan dosyaya yapıştır, sohbete ya da başka bir yere yazma.
    - **Settings** → **Security** → **Authorized IPs** → **Deactivate blocking**. Brevo, anahtar 30 gün yeni bir adresten kullanılmazsa tanımadığı IP adreslerini engellemeye başlar. Vercel fonksiyonlarının IP adresi sabit değil; engelleme açık kalırsa e-postalar bir gün sessizce durur (Brevo 401 döner). Anahtar yalnızca sunucuda durduğu için bu açık kabul edilebilir.
 5. `server/.env` ve `server/.env.production` içinde:
    - `BREVO_API_KEY=` → anahtar
    - `MAIL_FROM=` → gönderen adresi
    - `APP_URL`: geliştirmede `http://localhost:5173`, canlıda sitenin adresi (doğrulama bağlantısı bu adresle başlar).
-6. `npm run check:env -w server` "Brevo (e-posta) (gönderen onaylı)" yazmalı.
+6. `npm run check:env -w server` Brevo satırında ✓ göstermeli. Kontrol e-posta göndermez: anahtarın gönderme yetkisini boş bir istekle dener. Anahtarın hesap izni varsa gönderenin onaylı olduğunu da kontrol eder ("gönderen onaylı"); yalnız e-posta izinli anahtarda bunu Brevo panelinden (Senders) kontrol et.
 7. Canlı için Vercel → proje → **Settings** → **Environment Variables**: `BREVO_API_KEY`, `MAIL_FROM`, `APP_URL` eklenir. Bu değişkenler eklenmeden yayınlanan sürüm açılmaz (canlıda zorunlu oldukları için); önce değişkenler, sonra yayın.
 
 **Gmail ile gönderimin sınırı:** gmail.com gibi ücretsiz adresler Brevo'da doğrulanamaz (DKIM, DMARC). Brevo bu yüzden gönderen adresini kendi alan adıyla değiştirir (`...@...brevosend.com` benzeri); gönderen adı "Film Dizi Kitap" olarak kalır. E-postalar gereksiz klasörüne düşebilir. Bir demo için yeterli, arayüz de kullanıcıya gereksiz klasörüne bakmasını söylüyor. Kalıcı çözüm kendi alan adı ve Brevo'da alan adı doğrulaması; alan adı ücretli olduğu için yapılmadı.
@@ -147,7 +147,7 @@ Komut önce biçimi (eksik/hatalı değişken) kontrol eder, sonra her servise g
 ✓ OMDb
 ✓ Google Books
 ✓ Open Library
-✓ Brevo (e-posta) (gönderen onaylı)
+✓ Brevo (e-posta) (gönderebiliyor; gönderen onayını Brevo panelinden kontrol et)
 ✓ Vikipedi
 ```
 
