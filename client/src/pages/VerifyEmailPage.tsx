@@ -115,7 +115,7 @@ function CheckInbox({ next }: { next: string }) {
         <>
           <span className="break-all text-light">{user.email}</span> adresine bir doğrulama
           bağlantısı gönderdik. Bağlantıyı açtıktan sonra izlediklerini ve okuduklarını
-          kaydedebilirsin.
+          kaydedebilirsin. Birkaç dakikada gelmezse gereksiz (spam) klasörüne de bak.
         </>
       }
     >
