@@ -1,4 +1,4 @@
-# Sosyal Kütüphane Platformu
+# Film Dizi Kitap
 
 Film, dizi ve kitapları tek yerde keşfetmek, takip etmek ve yorumlamak için Türkçe bir sosyal platform.
 
