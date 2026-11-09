@@ -1,5 +1,5 @@
 {
-  "name": "@sosyal-kutuphane/server",
+  "name": "@film-dizi-kitap/server",
   "private": true,
   "type": "module",
   "scripts": {

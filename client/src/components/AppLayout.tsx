@@ -4,11 +4,16 @@ import { useSession } from '../features/auth/use-auth';
 import { BookmarkIcon, SearchIcon } from './icons';
 
 const navLinkClass = (active: boolean) =>
-  `flex h-11 items-center transition-colors duration-200 hover:text-light ${
+  `flex h-11 items-center whitespace-nowrap transition-colors duration-200 hover:text-light ${
     active ? 'text-light' : 'text-light-dim'
   }`;
 
 /** Film ve dizi detayları da "Film ve Dizi" bölümüne aittir. */
+/** Marka adının son kelimesi dar ekranda alt satıra iner: "Film Dizi" / "Kitap". */
+const brandWords = BRAND_NAME.split(' ');
+const brandLead = brandWords.slice(0, -1).join(' ');
+const brandLast = brandWords.at(-1);
+
 const isTitleSection = (path: string) =>
   path === '/' || path.startsWith('/film/') || path.startsWith('/dizi/');
 
@@ -28,17 +33,18 @@ export function AppLayout() {
       </a>
 
       <header className="relative z-10 h-[var(--header-h)]">
-        <div className="perde-width page-gutter flex h-full items-center gap-3 min-[24rem]:gap-4 sm:gap-8">
+        <div className="perde-width page-gutter flex h-full items-center gap-2 min-[24rem]:gap-4 sm:gap-8">
           <Link
             to="/"
             translate="no"
-            className="font-display text-2xl leading-none min-[24rem]:text-[1.75rem]"
+            className="font-display text-lg leading-[0.95] min-[24rem]:text-[1.375rem] sm:text-[1.75rem] sm:leading-none"
           >
-            {BRAND_NAME}
+            <span className="block sm:inline">{brandLead}</span>{' '}
+            <span className="block sm:inline">{brandLast}</span>
           </Link>
           <nav
             aria-label="Ana menü"
-            className="flex gap-3 text-[0.9375rem] min-[24rem]:gap-4 min-[24rem]:text-base sm:gap-6 sm:text-[1.0625rem]"
+            className="flex gap-2 text-sm min-[24rem]:gap-4 min-[24rem]:text-base sm:gap-6 sm:text-[1.0625rem]"
           >
             <Link
               to="/"
