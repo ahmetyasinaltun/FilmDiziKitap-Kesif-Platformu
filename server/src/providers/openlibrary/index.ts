@@ -1,6 +1,7 @@
 /**
  * Open Library servis katmanı: kitap arama, eser detayı, yazar, trendler. Kitapların
- * kimliği Open Library eser kimliğidir ("OL1168083W"). Karar: LEARNING.md ("Kitap kaynağı").
+ * kimliği Open Library eser kimliğidir ("OL1168083W"): ücretsiz, anahtarsız ve kararlı bir kimlik;
+ * Türkçe baskılar ve kapaklar da buradan gelir.
  */
 import type { AuthorDetail, ContentSummary, Paginated } from '../../domain/content.js';
 import { cached } from '../../lib/api-cache.js';

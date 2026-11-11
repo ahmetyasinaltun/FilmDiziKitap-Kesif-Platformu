@@ -1,4 +1,5 @@
-// Veri modeli. Kararların gerekçesi: LEARNING.md ("Veri modeli" bölümü)
+// Veri modeli. Dış kaynaklardan gelen içerik burada yalnız kart özeti olarak tutulur (Content);
+// detay verisi her zaman sağlayıcıdan, önbellek (ApiCache) üzerinden okunur.
 
 generator client {
   provider            = "prisma-client"

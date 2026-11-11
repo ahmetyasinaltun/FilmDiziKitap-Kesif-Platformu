@@ -9,17 +9,16 @@ Projeyi çalıştırmak için gereken hesaplar, API anahtarları ve ortam deği�
 
 ## Genel bakış
 
-| # | Servis | Ne için | Env değişkeni | Ne zaman gerekli |
+| # | Servis | Ne için | Env değişkeni | Gerekli mi |
 |---|---|---|---|---|
-| 1 | TMDB | Film, dizi, kişi verisi | `TMDB_API_TOKEN` | Faz 2 |
-| 2 | OMDb | IMDb, Rotten Tomatoes, Metacritic puanları | `OMDB_API_KEY` | Faz 2 |
-| 3 | Google Books | Kitapların Türkçe açıklaması (isteğe bağlı) | `GOOGLE_BOOKS_API_KEY` | Faz 2 |
-| 4 | Neon | PostgreSQL veritabanı | `DATABASE_URL`, `DIRECT_URL` | Faz 1 |
-| 5 | Vercel | Yayın | Yok (GitHub bağlantısı) | Faz 6, hesap şimdiden açılabilir |
+| 1 | TMDB | Film, dizi, kişi verisi | `TMDB_API_TOKEN` | Evet |
+| 2 | OMDb | IMDb, Rotten Tomatoes, Metacritic puanları | `OMDB_API_KEY` | Evet |
+| 3 | Google Books | Kitapların Türkçe açıklaması (destek) | `GOOGLE_BOOKS_API_KEY` | Evet (anahtarsız istek kota hatası verir) |
+| 4 | Neon | PostgreSQL veritabanı | `DATABASE_URL`, `DIRECT_URL` | Evet |
+| 5 | Vercel | Yayın | Yok (GitHub bağlantısı) | Yalnız yayınlamak için |
+| 6 | Brevo | Kayıtta e-posta doğrulama bağlantısı | `BREVO_API_KEY`, `MAIL_FROM`, `APP_URL` | Canlıda evet, geliştirmede isteğe bağlı |
 | – | Open Library | Kitapların ana kaynağı: arama, detay, kapak, yazar, trend | `APP_USER_AGENT` | Anahtar gerekmez |
 | – | Vikipedi / Wikidata | Kitapların Türkçe açıklaması | `APP_USER_AGENT` | Anahtar gerekmez |
-| 6 | Brevo | Kayıtta e-posta doğrulama bağlantısı | `BREVO_API_KEY`, `MAIL_FROM`, `APP_URL` | Canlıda zorunlu, geliştirmede isteğe bağlı |
-| – | Cloudinary | Avatar yükleme | Henüz yok | İleride |
 
 ## 0. `.env` dosyası
 
@@ -58,7 +57,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ## 3. Google Books
 
 1. [console.cloud.google.com](https://console.cloud.google.com) adresine Google hesabınla gir. İlk girişte kullanım şartlarını kabul et (ödeme bilgisi gerekmiyor).
-2. Üstteki proje seçici → **New Project** → ad: `sosyal-kutuphane` → **Create**. Yeni projenin seçili olduğundan emin ol.
+2. Üstteki proje seçici → **New Project** → ad: `film-dizi-kitap` → **Create**. Yeni projenin seçili olduğundan emin ol.
 3. Menü → **APIs & Services** → **Library** → "Books API" ara → **Enable**.
 4. **APIs & Services** → **Credentials** → **Create credentials** → **API key**.
 5. Oluşan anahtarda **Edit API key** (veya "Restrict key") → **API restrictions** → **Restrict key** → yalnızca **Books API** seç → **Save**. Böylece anahtar sızsa bile başka bir Google servisi için kullanılamaz.
@@ -68,7 +67,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 1. [neon.tech](https://neon.tech) → **Sign up** → **GitHub ile devam et**.
 2. Yeni proje oluştur:
-   - Project name: `sosyal-kutuphane`
+   - Project name: `film-dizi-kitap`
    - Postgres sürümü: varsayılan
    - Region: **AWS Europe (Frankfurt)**, Türkiye'ye en yakın bölge
 3. Proje panelinde **Connect** düğmesi → bağlantı adresi (`postgresql://...` ile başlar):

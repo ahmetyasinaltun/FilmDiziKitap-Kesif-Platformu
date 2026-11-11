@@ -1,6 +1,6 @@
 /**
  * API'nin dışarıya verdiği normalize içerik tipleri. Hangi sağlayıcıdan gelirse gelsin
- * arayüz bu biçimi görür. Kararların gerekçesi: LEARNING.md ("İçerik katmanı").
+ * arayüz bu biçimi görür; sağlayıcı değişse de arayüz kodu değişmez.
  *
  * Görsel alanları (`poster`, `backdrop`, `profile`, `logo`): TMDB görselleri "/abc.jpg"
  * biçiminde yol olarak gelir, boyutu istemci ekrana göre seçer (w342, w780...).
