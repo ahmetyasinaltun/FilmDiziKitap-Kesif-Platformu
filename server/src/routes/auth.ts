@@ -81,11 +81,20 @@ authRouter.post('/verify-email', async (req, res) => {
 
 authRouter.post(
   '/verify-email/resend',
+  // Kişi başına saatte 3: aynı Wi-Fi'deki biri diğerlerinin hakkını tüketmez. IP başına saatte 10
+  // ek sınır: çok hesap açıp e-posta kotasını (Brevo, günde 300) tüketmeyi yavaşlatır.
+  limitRequests({
+    name: 'verify-resend-user',
+    windowMinutes: 60,
+    limit: 3,
+    per: 'user',
+    message: 'Çok fazla doğrulama e-postası istendi.',
+  }),
   limitRequests({
     name: 'verify-resend',
     windowMinutes: 60,
-    limit: 3,
-    message: 'Çok fazla doğrulama e-postası istendi.',
+    limit: 10,
+    message: 'Bu ağdan çok fazla doğrulama e-postası istendi.',
   }),
   async (req, res) => {
     const user = await requireUser(req);

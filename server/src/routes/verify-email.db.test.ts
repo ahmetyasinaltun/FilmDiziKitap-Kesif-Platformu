@@ -141,4 +141,39 @@ describe('POST /api/auth/verify-email/resend', () => {
     expect(res.status).toBe(429);
     expect(res.body.error.message).toMatch(/^Çok fazla doğrulama e-postası istendi\./);
   });
+
+  it('sınır kişi başına: aynı ağdaki başka bir kullanıcı etkilenmez', async () => {
+    // Testte bütün istekler aynı IP'den gelir (aynı Wi-Fi'deki iki kişi gibi).
+    const first = await signUpUnverified();
+    const second = await signUp(
+      app,
+      { username: 'zeynep', email: 'zeynep@ornek.com' },
+      { verified: false },
+    );
+    for (let i = 0; i < 3; i++) await resend(first.cookie);
+
+    expect((await resend(first.cookie)).status).toBe(429);
+    expect((await resend(second.cookie)).status).toBe(204);
+  });
+
+  it('aynı ağdan saatte 10 istekten sonra herkes için 429 döner (e-posta kotası)', async () => {
+    const users = [];
+    for (let i = 1; i <= 4; i++) {
+      users.push(
+        await signUp(
+          app,
+          { username: `kisi${i}`, email: `kisi${i}@ornek.com` },
+          { verified: false },
+        ),
+      );
+    }
+    // 4 kişi, kişi başı en fazla 3: toplam 10 istek geçer, 11. reddedilir.
+    const statuses = [];
+    for (const user of users) {
+      for (let i = 0; i < 3; i++) statuses.push((await resend(user.cookie)).status);
+    }
+
+    expect(statuses.filter((status) => status === 204)).toHaveLength(10);
+    expect(statuses.slice(10)).toEqual([429, 429]);
+  });
 });

@@ -1,6 +1,8 @@
-import { rateLimit, type Options } from 'express-rate-limit';
+import type { Request } from 'express';
+import { ipKeyGenerator, rateLimit, type Options } from 'express-rate-limit';
 import { AppError } from '../lib/errors.js';
 import { createRateLimitStore } from '../lib/rate-limit-store.js';
+import { readSessionToken } from '../lib/session.js';
 
 interface LimitOptions {
   /** Sayaç anahtarlarının öneki; her sınırın sayacı ayrı tutulur */
@@ -18,6 +20,18 @@ interface LimitOptions {
   store?: 'database' | 'memory';
   /** Sınır aşılınca gösterilecek mesajın başı; sonuna bekleme süresi eklenir */
   message?: string;
+  /**
+   * `ip` (varsayılan): sayaç IP adresine göre. `user`: oturum açmış kullanıcıya göre (yoksa IP).
+   * Aynı ağı paylaşanlar (ofis, okul Wi-Fi'si, mobil operatörün ortak adresi) tek IP'den görünür;
+   * giriş gerektiren bir uçta IP'ye göre sınır, birinin isteği yüzünden diğerlerini engeller.
+   */
+  per?: 'ip' | 'user';
+}
+
+/** Oturumdaki kullanıcının kimliği; oturum yoksa IP (IPv6'da /56 bloğu, kütüphanenin varsayılanı). */
+async function userOrIpKey(req: Request): Promise<string> {
+  const token = await readSessionToken(req);
+  return token ? `user:${token.userId}` : ipKeyGenerator(req.ip ?? '', 56);
 }
 
 /**
@@ -31,6 +45,7 @@ export function limitRequests({
   countOnlyFailures,
   store = 'database',
   message = 'Çok fazla deneme yapıldı.',
+  per = 'ip',
 }: LimitOptions) {
   const windowMs = windowMinutes * 60 * 1000;
   return rateLimit({
@@ -41,6 +56,7 @@ export function limitRequests({
     legacyHeaders: false,
     // Bellek deposu kütüphanenin varsayılanı: `store` verilmezse o kullanılır.
     ...(store === 'database' && { store: createRateLimitStore(name) }),
+    ...(per === 'user' && { keyGenerator: userOrIpKey }),
     handler: (_req, res, next, options: Options) => {
       const retryAfter = Number(res.getHeader('Retry-After')) || options.windowMs / 1000;
       const minutes = Math.max(1, Math.ceil(retryAfter / 60));
