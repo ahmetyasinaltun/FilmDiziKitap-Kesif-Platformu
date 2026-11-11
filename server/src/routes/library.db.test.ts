@@ -176,6 +176,29 @@ describe('PUT /api/library/:type/:id', () => {
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 
+  it('10 kullanıcı aynı yeni içeriği aynı anda kaydedince hepsi başarılı, içerik tek kayıt', async () => {
+    // Kayıt sınırı IP başına saatte 10: beforeEach'teki hesapla birlikte 10 kullanıcı.
+    const others = [];
+    for (let i = 1; i <= 9; i++) {
+      others.push(await signUp(app, { username: `kisi${i}`, email: `kisi${i}@ornek.com` }));
+    }
+    // Sağlayıcı yavaş yanıt verir: istekler "içerik yok" kontrolünü aynı anda geçer.
+    vi.mocked(tmdb.getMovie).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve(movie as MovieDetail), 50)),
+    );
+
+    const results = await Promise.all(
+      [cookie, ...others.map((user) => user.cookie)].map((as) =>
+        put('movie/27205', { status: 'planned' }, as),
+      ),
+    );
+
+    expect(results.map((res) => res.status)).toEqual(Array(10).fill(200));
+    expect(await contentRows()).toHaveLength(1);
+    const { rows } = await db.query<{ count: string }>(`SELECT count(*) FROM "LibraryEntry"`);
+    expect(Number(rows[0]?.count)).toBe(10);
+  });
+
   describe('eskimiş özet', () => {
     beforeEach(async () => {
       await put('movie/27205', { status: 'planned' });
